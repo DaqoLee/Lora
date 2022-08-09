@@ -171,7 +171,8 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
 {
   
   static uint8_t temp = 0;
-  
+  static uint8_t num = 0;
+    
   switch(Forward.Lora_ID)
   {  
     case 0x01 :
@@ -185,7 +186,6 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
         {
           temp=0;
          
-         // Forward.USART1_Tx_Buff_Size=0;
           Forward.USART2_Rx_End_Flag = 1;
         }
         else if (temp == 0)
@@ -195,9 +195,15 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
           Forward.USART2_Rx_End_Flag = 1;
         }
         else if (temp == 1)
-        {
-           memcpy(&Forward.USART1_Tx_Buff[Forward.USART1_Tx_Buff_Size], &Rx_Buff[8], Rx_Buff[7]);
-           Forward.USART1_Tx_Buff_Size += Rx_Buff[7];
+        { 
+          memcpy(&Forward.USART1_Tx_Buff[Forward.USART1_Tx_Buff_Size], &Rx_Buff[8], Rx_Buff[7]);
+          Forward.USART1_Tx_Buff_Size += Rx_Buff[7];
+          num++;
+          if(num > USART1_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
+          {
+            temp = 0;
+            num = 0;
+          }
         } 
       }
       HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
@@ -227,6 +233,12 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
       {
          memcpy(&Forward.USART1_Tx_Buff[Forward.USART1_Tx_Buff_Size], Rx_Buff, Rx_Size);
          Forward.USART1_Tx_Buff_Size += Rx_Size;
+         num++;
+         if(num > USART1_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
+         {
+           temp = 0;
+           num = 0;
+         }
       } 
       HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
       break;   
@@ -262,7 +274,13 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
       else if (temp == 1)
       {
          memcpy(&Forward.USART1_Tx_Buff[Forward.USART1_Tx_Buff_Size], &Rx_Buff, Rx_Size);
-         Forward.USART1_Tx_Buff_Size += Rx_Size;
+         Forward.USART1_Tx_Buff_Size += Rx_Size;       
+         num++;
+         if(num > USART1_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
+         {
+           temp = 0;
+           num = 0;
+         }
       } 
       HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
       break;
