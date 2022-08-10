@@ -23,6 +23,7 @@ lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_d
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_cortex.h
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
+lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_iwdg.h
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 lora\stm32f1xx_hal_tim_ex.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h

@@ -78,7 +78,7 @@ void USAR2_Transmit(void)
      if(Forward.USART2_Tx_Buff_Size >USART2_TX_MAX_SIZE)
      {
        USAR2_Pack_Transmit(Forward.Head ,sizeof(Forward.Head) ,0x03); 
-       HAL_Delay(500);
+       HAL_Delay(1000);
        while(Forward.USART2_Tx_Buff_Size / USART2_TX_MAX_SIZE)
        {
          USAR2_Pack_Transmit(Forward.USART2_Tx_Buff[temp] ,USART2_TX_MAX_SIZE ,0x03);       
