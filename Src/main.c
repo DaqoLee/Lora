@@ -20,7 +20,9 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "dma.h"
+#include "fatfs.h"
 #include "iwdg.h"
+#include "spi.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +32,7 @@
 #include "User.h"
 #include "stdio.h"
 #include "string.h"
+#include "SDdriver.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -60,6 +63,8 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+char SD_FileName[] = "0:Log7.txt";
+uint8_t WriteBuffer[] = "613515412318131354315131515153513512315153131351351351231515316135154123181313543151315151535135123151531313513513512315153161\r\n";
 
 /* USER CODE END 0 */
 
@@ -70,7 +75,11 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+	FATFS fs;
+	FIL file;
+	uint8_t res=0;
+	UINT Bw;	
+  uint16_t FileSize ;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -96,22 +105,128 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_IWDG_Init();
+ // MX_IWDG_Init();
+  MX_SPI1_Init();
+  MX_FATFS_Init();
   /* USER CODE BEGIN 2 */
+  printf("System init---------------------------------------------------------------------------------- \r\n");
+ // HAL_Delay(200);
 	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE );
 	__HAL_UART_ENABLE_IT(&huart2,UART_IT_IDLE );
 	__HAL_UART_ENABLE_IT(&huart3,UART_IT_IDLE );
-	HAL_TIM_Base_Start_IT(&htim3);
-	//printf("wwdg \r\n");
-  HAL_UART_Transmit(&huart3,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE,2000);
-  HAL_Delay(2);
-  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
- 
-  HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-  HAL_Delay(200);
   
-  Read_Lora_ID();
-   
+  printf("UART_ENABLE_IT \r\n");
+ // HAL_Delay(200); 
+  //HAL_TIM_Base_Start_IT(&htim3);
+  
+ // HAL_UART_Receive_DMA(&huart1,Forward.USART3_Rx_Buff,USART1_RX_MAX_SIZE);
+  HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
+  HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+  
+  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+  printf("UART_Receive_DMA \r\n"); 
+  HAL_Delay(200); 
+ // Read_Lora_ID();
+  printf("Lora_ID = %d \r\n",Forward.Lora_ID);
+  
+  HAL_GPIO_WritePin(GPIOA, GPIO_PIN_4, GPIO_PIN_SET);
+  
+	res = SD_init();		//SD卡初始化
+	
+	if(res == 1)
+	{
+		printf("SD卡初始化失败! \r\n");		
+	}
+	else
+	{
+		printf("SD卡初始化成功！ \r\n");		
+	}
+  
+	res=f_mount(&fs,"0:",1);		//挂载
+	printf("%d \r\n",res);	
+//	if(test_sd == 0)		//用于测试格式化
+	if(res == FR_NO_FILESYSTEM)		//没有文件系统，格式化
+	{
+//		test_sd =1;				//用于测试格式化
+		printf("没有文件系统! \r\n");		
+		
+	}
+  else if(res == FR_OK)
+	{
+		printf("挂载成功! \r\n");		
+	}
+	else
+	{
+		printf("挂载失败! \r\n");
+	}	
+//  res = f_open(&file,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);//创建文件
+//  f_lseek(&file, f_size(&file));
+//  if(res == FR_OK)
+//	{
+//		printf("打开成功/创建文件成功！ \r\n");		
+////		res = f_write(&file,"SD test",sizeof("SD test"),&Bw);		//写数据到SD卡
+////		if(res == FR_OK)
+////		{
+////			printf("文件写入成功！ \r\n");			
+////		}
+////		else
+////		{
+////			printf("文件写入失败！ \r\n");
+////		}		
+//	}
+//	else
+//	{
+//		printf("打开文件失败!\r\n");
+//	}	
+//  f_close(&file);
+//  res = f_open(&file,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);
+//  f_lseek(&file, f_size(&file));
+//  res = f_write(&file,"1234567890",sizeof("1234567890"),&Bw);	
+//  f_close(&file);
+////  
+//   res = f_open(&file, SD_FileName,FA_OPEN_EXISTING | FA_READ);//创建文件
+//  if(res == FR_OK)
+//	{
+//		printf("打开成功! \r\n");	
+//    res=f_read (&file, readBuffer, sizeof(readBuffer), &br);
+//    if(res == FR_OK)
+//    {
+//      printf("读取成功! \r\n");		
+//    }
+//    else
+//    {
+//      printf("读取失败! \r\n");
+//    }	    
+//	}
+//	else
+//	{
+//		printf("打开失败! \r\n");
+//	}	
+// 
+//  printf("%s\r\n",readBuffer);
+  
+//  f_close(&file);						//关闭文件		
+//	f_mount(NULL,"0:",1);		 //取消挂载
+
+    res = f_open(&file,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);//创建文件
+   // f_lseek(&file, f_size(&file));
+    res = f_write(&file,"SD test",sizeof("SD test"),&Bw);
+    f_close(&file);
+ 
+   res = f_open(&file, SD_FileName,FA_OPEN_EXISTING | FA_READ);//读取文件
+   FileSize = f_size(&file); 
+    
+    f_close(&file);
+    
+    res = f_open(&file,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);//创建文件
+   // f_lseek(&file, f_size(&file));
+    if(FileSize>50)
+    {
+      res=f_lseek(&file,FileSize); 
+    }
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,30 +237,38 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
     
+
+    
+    res = f_write(&file,"SDtest  ",sizeof("SDtest  "),&Bw);
+    //f_close(&file);    
+    HAL_Delay(500);
     if( Forward.USART2_Rx_End_Flag == 1)
     {
     
-      USAR1_Transmit();
-      
+      USAR3_Transmit();
+      printf("UART1_Transmit_Size : %d \r\n",Forward.USART3_Tx_Buff_Size );
       Forward.USART2_Rx_End_Flag = 0;     
       Forward.USART2_Rx_Buff_Size = 0;
+      Forward.USART3_Tx_Buff_Size = 0;
       memset(Forward.USART2_Rx_Buff,0,USART2_RX_MAX_SIZE);
       HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
     }
     
-    if( Forward.USART1_Rx_End_Flag == 1)
+    if( Forward.USART3_Rx_End_Flag == 1)
     {
     
       USAR2_Transmit();
-      
-      Forward.USART1_Rx_End_Flag = 0;
-      Forward.USART1_Rx_Buff_Size = 0;
-      memset(Forward.USART1_Rx_Buff,0,USART1_RX_MAX_SIZE);
-      HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
+      printf("UART2_Transmit_Size : %d \r\n",Forward.USART2_Tx_Buff_Size );
+      Forward.USART3_Rx_End_Flag = 0;
+      Forward.USART3_Rx_Buff_Size = 0;
+      Forward.USART2_Tx_Buff_Size = 0;
+      memset(Forward.USART3_Rx_Buff,0,USART3_RX_MAX_SIZE);
+      HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
     }
-    
+    HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);
      HAL_Delay(5);
-     HAL_IWDG_Refresh(&hiwdg); 
+//     HAL_IWDG_Refresh(&hiwdg); 
+//    
   }
   /* USER CODE END 3 */
 }

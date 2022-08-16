@@ -8,11 +8,11 @@
 #include "stm32f1xx_hal.h"
 #include "main.h"
 
-#define USART1_RX_MAX_SIZE 500
+#define USART3_RX_MAX_SIZE 500
 #define USART2_RX_MAX_SIZE 500
 
 #define USART2_TX_MAX_SIZE 100
-#define USART1_TX_MAX_SIZE 500
+#define USART3_TX_MAX_SIZE 500
 
 //#define Source node
 
@@ -28,19 +28,19 @@ typedef struct
 //  uint8_t Rx_Head[3] ;
 //  uint8_t Rx_Tail[3] ;
   
-  uint8_t USART2_Tx_Buff[USART1_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1][USART2_TX_MAX_SIZE] ;
-  uint8_t USART1_Tx_Buff[USART1_TX_MAX_SIZE];
+  uint8_t USART2_Tx_Buff[USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1][USART2_TX_MAX_SIZE] ;
+  uint8_t USART3_Tx_Buff[USART3_TX_MAX_SIZE];
   
-  uint8_t USART1_Rx_Buff[USART1_RX_MAX_SIZE];
+  uint8_t USART3_Rx_Buff[USART3_RX_MAX_SIZE];
   uint8_t USART2_Rx_Buff[USART2_RX_MAX_SIZE];
   
-  uint16_t USART1_Rx_Buff_Size; 
+  uint16_t USART3_Rx_Buff_Size; 
   uint16_t USART2_Rx_Buff_Size; 
  
-  uint16_t USART1_Tx_Buff_Size; 
+  uint16_t USART3_Tx_Buff_Size; 
   uint16_t USART2_Tx_Buff_Size; 
   
-  uint8_t USART1_Rx_End_Flag;  
+  uint8_t USART3_Rx_End_Flag;  
   uint8_t USART2_Rx_End_Flag;  
   
 }Forward_t;
@@ -58,9 +58,9 @@ void User_Transmit(UART_HandleTypeDef *huart, uint8_t *SendBuf, uint16_t SendLen
 void Read_Lora_ID(void);
 
 
-void USAR1_Transmit(void);
+void USAR3_Transmit(void);
 void USAR2_Transmit(void);
-void USART1_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
+void USART3_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
 void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
 #endif
 
