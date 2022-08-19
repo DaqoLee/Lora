@@ -152,55 +152,39 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>87</LineNumber>
+          <LineNumber>396</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134228624</Address>
+          <Address>134226524</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Src/main.c</Filename>
+          <Filename>..\User\User.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Lora\../Src/main.c\87</Expression>
+          <Expression>\\Lora\../User/User.c\396</Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>90</LineNumber>
+          <LineNumber>406</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134228634</Address>
+          <Address>134226544</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Src/main.c</Filename>
+          <Filename>..\User\User.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\Lora\../Src/main.c\90</Expression>
+          <Expression>\\Lora\../User/User.c\406</Expression>
         </Bp>
         <Bp>
           <Number>2</Number>
           <Type>0</Type>
-          <LineNumber>2511</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134234084</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Middlewares/Third_Party/FatFs/src/ff.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\Lora\../Middlewares/Third_Party/FatFs/src/ff.c\2511</Expression>
-        </Bp>
-        <Bp>
-          <Number>3</Number>
-          <Type>0</Type>
-          <LineNumber>68</LineNumber>
+          <LineNumber>393</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -209,7 +193,7 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
-          <Filename>../Src/main.c</Filename>
+          <Filename>..\User\User.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -220,12 +204,17 @@
           <WinNumber>1</WinNumber>
           <ItemText>Forward,0x0A</ItemText>
         </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>WriteBuffer</ItemText>
+        </Ww>
       </WatchWindow1>
       <MemoryWindow1>
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>0</SubType>
-          <ItemText>Forward.USART2_Rx_Buff</ItemText>
+          <ItemText>str</ItemText>
           <AccSizeX>0</AccSizeX>
         </Mm>
       </MemoryWindow1>
@@ -443,7 +432,7 @@
 
   <Group>
     <GroupName>Drivers/STM32F1xx_HAL_Driver</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>
@@ -695,7 +684,7 @@
 
   <Group>
     <GroupName>Middlewares/FatFs</GroupName>
-    <tvExp>0</tvExp>
+    <tvExp>1</tvExp>
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>0</RteFlg>

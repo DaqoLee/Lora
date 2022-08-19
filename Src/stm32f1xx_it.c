@@ -322,13 +322,12 @@ void USART1_IRQHandler(void)
 
 	DMA1->IFCR=(1<<21)|(1<<20);
   
-//  Forward.USART3_Rx_Buff_Size = USART1_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
-////  HAL_UART_Transmit(&huart3,ask1,sizeof(ask1),500);
-////  HAL_UART_Transmit(&huart3,Forward.USART1_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
-//  
+  Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
+//  HAL_UART_Transmit(&huart3,ask1,sizeof(ask1),500);
+//  HAL_UART_Transmit(&huart3,Forward.USART1_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
 //  printf("UART1_Receive_Size : %d \r\n",Forward.USART3_Rx_Buff_Size );
-//  USART1_Rx_Analysis(Forward.USART1_Rx_Buff, Forward.USART3_Rx_Buff_Size);
-  
+  USART3_Rx_Analysis(Forward.USART3_Rx_Buff, Forward.USART3_Rx_Buff_Size);
+
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */

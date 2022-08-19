@@ -119,7 +119,7 @@ uint8_t SD_init(void)
 		}
 	}
 	SD_CS(0);
-	SPI_setspeed(SPI_BAUDRATEPRESCALER_2);
+	SPI_setspeed(SPI_BAUDRATEPRESCALER_4);
 	if(SD_TYPE)return 0;
 	else return 1;
 }

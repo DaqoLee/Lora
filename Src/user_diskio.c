@@ -91,7 +91,7 @@ DSTATUS USER_initialize (
   {
     SPI_setspeed(SPI_BAUDRATEPRESCALER_256);
     spi_readwrite(0xff);//提供额外的8个时钟
-    SPI_setspeed(SPI_BAUDRATEPRESCALER_2);
+    SPI_setspeed(SPI_BAUDRATEPRESCALER_4);
   }
 	if(res)return  STA_NOINIT;
 	else return RES_OK; //初始化成功

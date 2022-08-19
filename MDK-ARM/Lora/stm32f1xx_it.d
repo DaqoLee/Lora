@@ -32,4 +32,11 @@ lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
 lora\stm32f1xx_it.o: ../Inc/stm32f1xx_it.h
 lora\stm32f1xx_it.o: ..\User\User.h
+lora\stm32f1xx_it.o: ../Inc/fatfs.h
+lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/ff.h
+lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/integer.h
+lora\stm32f1xx_it.o: ../Inc/ffconf.h
+lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
+lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
+lora\stm32f1xx_it.o: ../Inc/user_diskio.h
 lora\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
