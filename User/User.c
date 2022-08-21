@@ -10,13 +10,21 @@
 uint8_t ReadConfigBuff[18]={0x01, 0x00, 0x02, 0x0D, 0xA5, 0xA5, 0x00, 0x00, 0x00, 
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E };//01 00 02 0D A5 A5 00 00 00 00 00 00 00 00 00 00 00 0E
 
-Forward_t Forward ={.Lora_ID = 3,
+Forward_t Forward ={.Lora_ID = 0,
+                    .Target_Lora_ID = 1,
+                    .SD_Status=0,
+  
+                    .Rx_LED_Status=0,
+                    .Tx_LED_Status=0,
+  
                     .Head = {0xAA, 0xAA, 0xAA},
                     .Tail = {0xEE, 0xEE, 0xEE},
-                    
+
+                    .USART1_Tx_Buff = {0},                    
                     .USART2_Tx_Buff = {0},
                     .USART3_Tx_Buff = {0},
                     
+                    .USART1_Rx_Buff = {0},                    
                     .USART2_Rx_Buff = {0},
                     .USART3_Rx_Buff = {0},     
                     
@@ -41,8 +49,11 @@ DateTime_t DateTime = {.Second = 0,
                        .Year = 2020,
                       };
 
+RTC_TimeTypeDef GetTime; 
+RTC_DateTypeDef GetData;                       
+                      
 FIL File;
-char SD_FileName[] = "0:LOG008.txt";
+char SD_FileName[] = "0:LOG001.txt";
 char WriteBuffer[2000]={'0'};
 char LogBuff[100]={'0'};
 
@@ -85,17 +96,17 @@ void USAR2_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   uint8_t temp = 0;
 //  char tempbuff[500];
-  switch(Forward.Lora_ID)
-  {  
-    case 0x01 :
-      
+//  switch(Forward.Lora_ID)
+//  {  
+//    case 0x01 :
+//      
      if(Tx_Size >USART2_TX_MAX_SIZE)
      {
-       USAR2_Pack_Transmit(Forward.Head ,sizeof(Forward.Head) ,0x03); 
+       USAR2_Pack_Transmit(Forward.Head ,sizeof(Forward.Head) ,Forward.Target_Lora_ID); 
        HAL_Delay(500);
        while(Tx_Size / USART2_TX_MAX_SIZE)
        {
-         USAR2_Pack_Transmit(&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,USART2_TX_MAX_SIZE ,0x03);       
+         USAR2_Pack_Transmit(&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,USART2_TX_MAX_SIZE ,Forward.Target_Lora_ID);       
               
          HAL_Delay(1000);
        //  memset(Tx_Buff[temp],0,USART2_TX_MAX_SIZE);
@@ -103,59 +114,84 @@ void USAR2_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
          temp++;
        }
       
-       USAR2_Pack_Transmit(&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,Tx_Size ,0x03);
+       USAR2_Pack_Transmit(&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,Tx_Size ,Forward.Target_Lora_ID);
        HAL_Delay(1000);
-       USAR2_Pack_Transmit(Forward.Tail ,sizeof(Forward.Tail) ,0x03);
+       USAR2_Pack_Transmit(Forward.Tail ,sizeof(Forward.Tail) ,Forward.Target_Lora_ID);
        HAL_Delay(500);
+       temp = 0;
      }
      else
      {
-       USAR2_Pack_Transmit(Tx_Buff ,Tx_Size ,0x03);
+       USAR2_Pack_Transmit(Tx_Buff ,Tx_Size ,Forward.Target_Lora_ID);
        HAL_Delay(500);
      }
 
     // memset(Tx_Buff[temp],0,Tx_Size);
     // Tx_Size = 0;
-      break;
+//      break;
       
-    case 0x02 :
-      
-      break;
-    case 0x03 :     
-    
-     if(Tx_Size > USART2_TX_MAX_SIZE)
-     {
-       
-       HAL_UART_Transmit(&huart2, Forward.Head, sizeof(Forward.Head) ,200);
-       HAL_Delay(500);
-       while(Tx_Size / USART2_TX_MAX_SIZE)
-       {     
-         HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,USART2_TX_MAX_SIZE ,1000);          
-         HAL_Delay(1000);
-        // memset(Tx_Buff[temp],0,USART2_TX_MAX_SIZE);
-         Tx_Size -= USART2_TX_MAX_SIZE; 
-         temp++;
-       }
-       HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,Tx_Size ,1000);       
-       HAL_Delay(1000);
-       HAL_UART_Transmit(&huart2, Forward.Tail, sizeof(Forward.Tail) ,200);
-       HAL_Delay(500);
-     }
-     else
-     {
-      HAL_UART_Transmit(&huart2,Tx_Buff ,Tx_Size ,1000);       
-      HAL_Delay(1000);
-     
-     }
+//    case 0x02 :
+//     if(Tx_Size > USART2_TX_MAX_SIZE)
+//     {
+//       
+//       HAL_UART_Transmit(&huart2, Forward.Head, sizeof(Forward.Head) ,200);
+//       HAL_Delay(500);
+//       while(Tx_Size / USART2_TX_MAX_SIZE)
+//       {     
+//         HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,USART2_TX_MAX_SIZE ,1000);          
+//         HAL_Delay(1000);
+//        // memset(Tx_Buff[temp],0,USART2_TX_MAX_SIZE);
+//         Tx_Size -= USART2_TX_MAX_SIZE; 
+//         temp++;
+//       }
+//       HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,Tx_Size ,1000);       
+//       HAL_Delay(1000);
+//       HAL_UART_Transmit(&huart2, Forward.Tail, sizeof(Forward.Tail) ,200);
+//       HAL_Delay(500);
+//     }
+//     else
+//     {
+//      HAL_UART_Transmit(&huart2,Tx_Buff, Tx_Size, 1000);      
+//      HAL_UART_Transmit(&huart1,Tx_Buff, Tx_Size, 500);       
+//      HAL_Delay(1000);
+//     
+//     }
+//      break;
+//    case 0x03 :     
+//    
+//     if(Tx_Size > USART2_TX_MAX_SIZE)
+//     {
+//       
+//       HAL_UART_Transmit(&huart2, Forward.Head, sizeof(Forward.Head) ,200);
+//       HAL_Delay(500);
+//       while(Tx_Size / USART2_TX_MAX_SIZE)
+//       {     
+//         HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,USART2_TX_MAX_SIZE ,1000);          
+//         HAL_Delay(1000);
+//        // memset(Tx_Buff[temp],0,USART2_TX_MAX_SIZE);
+//         Tx_Size -= USART2_TX_MAX_SIZE; 
+//         temp++;
+//       }
+//       HAL_UART_Transmit(&huart2,&Tx_Buff[temp * USART2_TX_MAX_SIZE] ,Tx_Size ,1000);       
+//       HAL_Delay(1000);
+//       HAL_UART_Transmit(&huart2, Forward.Tail, sizeof(Forward.Tail) ,200);
+//       HAL_Delay(500);
+//     }
+//     else
+//     {
+//      HAL_UART_Transmit(&huart2,Tx_Buff ,Tx_Size ,1000);       
+//      HAL_Delay(1000);
+//     
+//     }
 
-     //memset(Tx_Buff[temp],0,Tx_Size);
-     //Tx_Size = 0;
-      break;   
-    
-    default:
+//     //memset(Tx_Buff[temp],0,Tx_Size);
+//     //Tx_Size = 0;
+//      break;   
+//    
+//    default:
 
-      break;
-  }
+//      break;
+//  }
   // HAL_UART_Transmit(&huart2,Tx_Buff ,Forward.USART3_Tx_Buff_Size ,100);
  // HAL_UART_Transmit_DMA(&huart1,Forward.USART3_Tx_Buff ,Forward.USART3_Tx_Buff_Size );
  
@@ -164,22 +200,7 @@ void USAR2_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 
 void USART3_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
 {
-//  uint8_t temp = 0;
-  
   Forward.USART2_Tx_Buff_Size = Rx_Size;
-  
-//  while(Rx_Size / USART2_TX_MAX_SIZE)
-//  {
-//    memcpy(Forward.USART2_Tx_Buff[temp], &Rx_Buff[temp * USART2_TX_MAX_SIZE], USART2_TX_MAX_SIZE);
-//    Rx_Size -= USART2_TX_MAX_SIZE;
-//    temp++;
-//  }    
-//    Rx_Size -= USART2_TX_MAX_SIZE;
-//    temp++;
-    
-//  memcpy(Forward.USART2_Tx_Buff[temp], &Rx_Buff[temp * USART2_TX_MAX_SIZE], Rx_Size); 
-//  sprintf(LogBuff,"%s:\t USART3 receive %d byte \r\n",DateTime.Buff,Rx_Size);
-//  Logging(LogBuff);
   memcpy(Forward.USART2_Tx_Buff, Rx_Buff, Rx_Size);
   Forward.USART3_Rx_End_Flag = 1;
 }
@@ -192,135 +213,192 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
   static uint8_t temp = 0;
 //  sprintf(LogBuff,"%s:\t USART2 receive %d byte \r\n",DateTime.Buff,Rx_Size);
 //  Logging(LogBuff);
-  switch(Forward.Lora_ID)
-  {  
-    case 0x01 :
-      if(Rx_Buff[0] == 0x05 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82 && Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
+//  switch(Forward.Lora_ID)
+//  {  
+//    case 0x01 :
+  if(Forward.Lora_ID ==0)
+  {
+    if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82)
+    {
+       if(Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
+       {
+          Forward.Lora_ID = Rx_Buff[Rx_Size - 5] | Rx_Buff[Rx_Size - 4];
+         
+         if(Forward.Lora_ID == 1)
+         {
+           Forward.Target_Lora_ID = 3;
+         
+         }
+         else
+         {
+           Forward.Target_Lora_ID = 1;
+         }
+       }
+    } 
+  }
+  else
+  {
+    if(Rx_Buff[0] == 0x05 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82 && Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
+    {
+      if(Rx_Buff[7] == 3 && Rx_Buff[8] == 0xAA && Rx_Buff[9] == 0xAA && Rx_Buff[10] == 0xAA)
       {
-        if(Rx_Buff[7] == 3 && Rx_Buff[8] == 0xAA && Rx_Buff[9] == 0xAA && Rx_Buff[10] == 0xAA)
-        {
-          status = 1;
-        }
-        else if(Rx_Buff[7] == 3 && Rx_Buff[8] == 0xEE && Rx_Buff[9] == 0xEE && Rx_Buff[10] == 0xEE)
+        status = 1;
+        temp = 0;
+      }
+      else if(Rx_Buff[7] == 3 && Rx_Buff[8] == 0xEE && Rx_Buff[9] == 0xEE && Rx_Buff[10] == 0xEE)
+      {
+        status = 0;      
+        Forward.USART2_Rx_End_Flag = 1;
+      }
+      else if (status == 0)
+      {
+        Forward.USART3_Tx_Buff_Size = Rx_Buff[7];
+        memcpy(Forward.USART3_Tx_Buff, &Rx_Buff[8],  Forward.USART3_Tx_Buff_Size);
+        Forward.USART2_Rx_End_Flag = 1;
+      }
+      else if (status == 1)
+      { 
+        memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], &Rx_Buff[8], Rx_Buff[7]);
+        Forward.USART3_Tx_Buff_Size += Rx_Buff[7];
+        temp++;
+        if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
         {
           status = 0;
-         
-          Forward.USART2_Rx_End_Flag = 1;
+          temp = 0;
         }
-        else if (status == 0)
-        {
-          Forward.USART3_Tx_Buff_Size = Rx_Buff[7];
-          memcpy(Forward.USART3_Tx_Buff, &Rx_Buff[8],  Forward.USART3_Tx_Buff_Size);
-          Forward.USART2_Rx_End_Flag = 1;
-        }
-        else if (status == 1)
-        { 
-          memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], &Rx_Buff[8], Rx_Buff[7]);
-          Forward.USART3_Tx_Buff_Size += Rx_Buff[7];
-          temp++;
-          if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
-          {
-            status = 0;
-            temp = 0;
-          }
-        } 
-      }
-      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-      break;
-      
-    case 0x02 :
-      
-      break;
-    case 0x03 :
-      if(Rx_Size == 3 && Rx_Buff[0] == 0xAA && Rx_Buff[1] == 0xAA && Rx_Buff[2] == 0xAA)
-      {
-        status=1;
-      }
-      else if(Rx_Size == 3 && Rx_Buff[0] == 0xEE && Rx_Buff[1] == 0xEE && Rx_Buff[2] == 0xEE)
-      {
-        status=0;
-        Forward.USART2_Rx_End_Flag = 1;
-       // Forward.USART3_Tx_Buff_Size=0;
-      }
-      else if (status == 0)
-      {
-        Forward.USART3_Tx_Buff_Size = Rx_Size;
-        memcpy(Forward.USART3_Tx_Buff, Rx_Buff,  Forward.USART3_Tx_Buff_Size); 
-        Forward.USART2_Rx_End_Flag = 1;        
-      }
-      else if (status == 1)
-      {
-         memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], Rx_Buff, Rx_Size);
-         Forward.USART3_Tx_Buff_Size += Rx_Size;
-         temp++;
-         if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE)
-         {
-           status = 0;
-           temp = 0;
-         }
       } 
-      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-      break;   
-
-    case 0x00 :
-      if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82)
-      {
-         if(Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
-         {
-            Forward.Lora_ID = Rx_Buff[Rx_Size - 5] | Rx_Buff[Rx_Size - 4];
-         }
-      } 
-      break;      
-      
-    default:
-      if(Rx_Size == 3 && Rx_Buff[0] == 0xAA && Rx_Buff[1] == 0xAA && Rx_Buff[2] == 0xAA)
-      {
-        status=1;
-      }
-      else if(Rx_Size == 3 && Rx_Buff[0] == 0xEE && Rx_Buff[1] == 0xEE && Rx_Buff[2] == 0xEE)
-      {
-        status=0;
-       
-       // Forward.USART3_Tx_Buff_Size=0;
-        Forward.USART2_Rx_End_Flag = 1;
-      }
-      else if (status == 0)
-      {
-        Forward.USART3_Tx_Buff_Size = Rx_Size;
-        memcpy(Forward.USART3_Tx_Buff, Rx_Buff,  Forward.USART3_Tx_Buff_Size);  
-        Forward.USART2_Rx_End_Flag = 1;        
-      }
-      else if (status == 1)
-      {
-         memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], &Rx_Buff, Rx_Size);
-         Forward.USART3_Tx_Buff_Size += Rx_Size;       
-         temp++;
-         if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
-         {
-           status = 0;
-           temp = 0;
-         }
-      } 
-      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-      break;
+    }
   }
+
+      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+//      break;
+//      
+//    case 0x02 :
+//      if(Rx_Size == 3 && Rx_Buff[0] == 0xAA && Rx_Buff[1] == 0xAA && Rx_Buff[2] == 0xAA)
+//      {
+//        status=1;
+//      }
+//      else if(Rx_Size == 3 && Rx_Buff[0] == 0xEE && Rx_Buff[1] == 0xEE && Rx_Buff[2] == 0xEE)
+//      {
+//        status=0;
+//        Forward.USART2_Rx_End_Flag = 1;
+//       // Forward.USART3_Tx_Buff_Size=0;
+//      }
+//      else if (status == 0)
+//      {
+//        Forward.USART3_Tx_Buff_Size = Rx_Size;
+//        memcpy(Forward.USART3_Tx_Buff, Rx_Buff,  Forward.USART3_Tx_Buff_Size); 
+//        Forward.USART2_Rx_End_Flag = 1;        
+//      }
+//      else if (status == 1)
+//      {
+//         memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], Rx_Buff, Rx_Size);
+//         Forward.USART3_Tx_Buff_Size += Rx_Size;
+//         temp++;
+//         if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE)
+//         {
+//           status = 0;
+//           temp = 0;
+//         }
+//      } 
+//      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+//      break;         
+//    case 0x03 :
+//      if(Rx_Size == 3 && Rx_Buff[0] == 0xAA && Rx_Buff[1] == 0xAA && Rx_Buff[2] == 0xAA)
+//      {
+//        status=1;
+//      }
+//      else if(Rx_Size == 3 && Rx_Buff[0] == 0xEE && Rx_Buff[1] == 0xEE && Rx_Buff[2] == 0xEE)
+//      {
+//        status=0;
+//        Forward.USART2_Rx_End_Flag = 1;
+//       // Forward.USART3_Tx_Buff_Size=0;
+//      }
+//      else if (status == 0)
+//      {
+//        Forward.USART3_Tx_Buff_Size = Rx_Size;
+//        memcpy(Forward.USART3_Tx_Buff, Rx_Buff,  Forward.USART3_Tx_Buff_Size); 
+//        Forward.USART2_Rx_End_Flag = 1;        
+//      }
+//      else if (status == 1)
+//      {
+//         memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], Rx_Buff, Rx_Size);
+//         Forward.USART3_Tx_Buff_Size += Rx_Size;
+//         temp++;
+//         if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE)
+//         {
+//           status = 0;
+//           temp = 0;
+//         }
+//      } 
+//      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+//      break;   
+
+//    case 0x00 :
+
+//      break;      
+//      
+//    default:
+//      if(Rx_Size == 3 && Rx_Buff[0] == 0xAA && Rx_Buff[1] == 0xAA && Rx_Buff[2] == 0xAA)
+//      {
+//        status=1;
+//      }
+//      else if(Rx_Size == 3 && Rx_Buff[0] == 0xEE && Rx_Buff[1] == 0xEE && Rx_Buff[2] == 0xEE)
+//      {
+//        status=0;
+//       
+//       // Forward.USART3_Tx_Buff_Size=0;
+//        Forward.USART2_Rx_End_Flag = 1;
+//      }
+//      else if (status == 0)
+//      {
+//        Forward.USART3_Tx_Buff_Size = Rx_Size;
+//        memcpy(Forward.USART3_Tx_Buff, Rx_Buff,  Forward.USART3_Tx_Buff_Size);  
+//        Forward.USART2_Rx_End_Flag = 1;        
+//      }
+//      else if (status == 1)
+//      {
+//         memcpy(&Forward.USART3_Tx_Buff[Forward.USART3_Tx_Buff_Size], &Rx_Buff, Rx_Size);
+//         Forward.USART3_Tx_Buff_Size += Rx_Size;       
+//         temp++;
+//         if(temp > USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1)
+//         {
+//           status = 0;
+//           temp = 0;
+//         }
+//      } 
+//      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+//      break;
+//  }
     
 }
 
 
-void Read_Lora_ID(void)
+HAL_StatusTypeDef Read_Lora_ID(void)
 {
+  uint16_t temp = 0;
   do
   {
     Logging("Read_Lora_ID\r\n");
     HAL_Delay(500);
     HAL_UART_Transmit(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff),500);
     
+    if(temp++ >10)
+    {
+      break;    
+    }
    // HAL_UART_Transmit_DMA(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff));
-    HAL_Delay(500);
     HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
   }while(Forward.Lora_ID == 0);
   
+  if(temp >10)
+  {
+    return HAL_TIMEOUT;
+  }
+  else
+  {
+    return HAL_OK;
+  } 
 }
 
 
@@ -456,13 +534,14 @@ void SD_Write(const void *buff)
 //    {
 //      printf("文件打开失败！ \r\n");
 //    }
+    f_lseek(&File, f_size(&File));
     if(f_write(&File,buff,strlen(buff),&Bw) == FR_OK)
     {
-      printf("文件写入成功！ \r\n");			
+    //  printf("文件写入成功！ \r\n");			
     }
     else
     {
-      printf("文件写入失败！ \r\n");
+   //   printf("文件写入失败！ \r\n");
     }		
     f_sync(&File);
   
@@ -490,40 +569,88 @@ void SD_Write(const void *buff)
     res= res;
 }
 
-void LEDStatus(uint16_t frequency, uint8_t id)
+void LEDStatus(uint16_t frequency)
 {
-  static uint16_t temp=0;
+  static uint16_t loraTemp=0;
+  static uint16_t sdTemp=0;
   static uint8_t ledToggle=0; 
  
-  if(ledToggle < id)
+  if(Forward.Lora_ID == 0)
   {
-     temp++;
-    if(temp < frequency/4)
+    if( loraTemp++ >5)
     {
-      
-      HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
-      
-    }
-    else if(temp < frequency/2)
-    {           
-      HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-    }
-    else
-    {
-      temp = 0;
-      ledToggle++;   
-    }
+      loraTemp=0;
+      HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);   
+    }    
   }
   else
   {
-    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-    temp++;
-    if(temp >= frequency)
+    if(ledToggle < Forward.Lora_ID)
     {
-      temp = 0;
-      ledToggle = 0;         
+       loraTemp++;
+      if(loraTemp < frequency/4)
+      {
+        
+        HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+        
+      }
+      else if(loraTemp < frequency/2)
+      {           
+        HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+      }
+      else
+      {
+        loraTemp = 0;
+        ledToggle++;   
+      }
     }
+    else
+    {
+      HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+      loraTemp++;
+      if(loraTemp >= frequency)
+      {
+        loraTemp = 0;
+        ledToggle = 0;         
+      }
+    
+    } 
+  }
   
+//  if(Forward.SD_Status==0)
+//  {
+//   if( sdTemp++ >5)
+//    {
+//      sdTemp=0;
+//      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin);   
+//    }    
+//  }
+  
+  if(Forward.Rx_LED_Status==1)
+  {
+    sdTemp++;
+//    HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
+    if(sdTemp < frequency/8)
+    {
+      
+      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+      
+    }
+    else if(sdTemp < frequency/4)
+    {           
+      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+    }
+    else
+    {
+      sdTemp = 0;
+      Forward.Rx_LED_Status=0;
+      //HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+    }
+//   if( sdTemp++ >9)
+//    {
+//      sdTemp=0;
+//       Forward.Rx_LED_Status=0;
+//    }    
   }
 
 }
@@ -547,6 +674,8 @@ void UserLoop(void)
     sprintf(LogBuff,"%s:\t USART2 receive  %d byte \r\n",DateTime.Buff, Forward.USART2_Rx_Buff_Size);
     Logging(LogBuff);
     USAR3_Transmit(Forward.USART3_Tx_Buff, Forward.USART3_Tx_Buff_Size);
+    HAL_Delay(500);
+//    HAL_UART_Transmit(&huart1,Forward.USART3_Tx_Buff,Forward.USART3_Tx_Buff_Size,500);
     sprintf(LogBuff,"%s:\t USART3 transmit %d byte \r\n",DateTime.Buff,Forward.USART3_Tx_Buff_Size );
     Logging(LogBuff);
     Forward.USART2_Rx_End_Flag = 0;     
@@ -561,24 +690,32 @@ void UserLoop(void)
     sprintf(LogBuff,"%s:\t USART2 receive  %d byte \r\n",DateTime.Buff, Forward.USART3_Rx_Buff_Size);
     Logging(LogBuff);      
     USAR2_Transmit(Forward.USART2_Tx_Buff, Forward.USART2_Tx_Buff_Size);
+//    HAL_UART_Transmit(&huart1,Forward.USART2_Tx_Buff,Forward.USART2_Tx_Buff_Size,500);
     sprintf(LogBuff,"%s:\t USART2 transmit %d byte \r\n",DateTime.Buff,Forward.USART2_Tx_Buff_Size );
     Logging(LogBuff);     
     Forward.USART3_Rx_End_Flag = 0;
     Forward.USART3_Rx_Buff_Size = 0;
     Forward.USART2_Tx_Buff_Size = 0;
     memset(Forward.USART3_Rx_Buff,0,USART3_RX_MAX_SIZE);
-    HAL_UART_Receive_DMA(&huart1,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
+    HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
   }
 }
 
+void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
+{
+    HAL_RTC_GetTime(hrtc, &GetTime, RTC_FORMAT_BIN);
+    HAL_RTC_GetDate(hrtc, &GetData, RTC_FORMAT_BIN);
+    sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
+}
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//10ms更新中断（溢出）发生时执行
 {
   if(htim->Instance == TIM3 )
 	{
-    DateTimeUpdate(100);
-		LEDStatus(100, Forward.Lora_ID);
+
+		LEDStatus(100);
 	}
+
 }
 
 

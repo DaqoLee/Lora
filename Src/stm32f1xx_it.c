@@ -60,6 +60,7 @@ uint8_t ask2[] = {0xBB, 0xBB, 0xBB};
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern RTC_HandleTypeDef hrtc;
 extern TIM_HandleTypeDef htim3;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart1_tx;
@@ -213,6 +214,33 @@ void SysTick_Handler(void)
 /******************************************************************************/
 
 /**
+  * @brief This function handles RTC global interrupt.
+  */
+void RTC_IRQHandler(void)
+{
+  /* USER CODE BEGIN RTC_IRQn 0 */
+
+  /* USER CODE END RTC_IRQn 0 */
+  HAL_RTCEx_RTCIRQHandler(&hrtc);
+  /* USER CODE BEGIN RTC_IRQn 1 */
+
+  /* USER CODE END RTC_IRQn 1 */
+}
+
+/**
+  * @brief This function handles RCC global interrupt.
+  */
+void RCC_IRQHandler(void)
+{
+  /* USER CODE BEGIN RCC_IRQn 0 */
+
+  /* USER CODE END RCC_IRQn 0 */
+  /* USER CODE BEGIN RCC_IRQn 1 */
+
+  /* USER CODE END RCC_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 channel2 global interrupt.
   */
 void DMA1_Channel2_IRQHandler(void)
@@ -317,17 +345,18 @@ void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
   __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除标志位
-  
+//  
   HAL_UART_DMAStop(&huart1);
 
 	DMA1->IFCR=(1<<21)|(1<<20);
   
-  Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
-//  HAL_UART_Transmit(&huart3,ask1,sizeof(ask1),500);
-//  HAL_UART_Transmit(&huart3,Forward.USART1_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
-//  printf("UART1_Receive_Size : %d \r\n",Forward.USART3_Rx_Buff_Size );
-  USART3_Rx_Analysis(Forward.USART3_Rx_Buff, Forward.USART3_Rx_Buff_Size);
+  Forward.USART1_Rx_Buff_Size = USART1_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
 
+  
+//  HAL_UART_Transmit(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size,500);
+//  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
+  
+//  Forward.Rx_LED_Status=1;
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -347,7 +376,14 @@ void USART2_IRQHandler(void)
   
   
   Forward.USART2_Rx_Buff_Size = USART2_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);// huart1.hdmarx->Instance->CNDTR;
- // printf("UART2_Receive_Size : %d \r\n",Forward.USART2_Rx_Buff_Size );
+//   HAL_UART_Transmit(&huart3,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500); 
+  
+//   HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
+//   HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500); 
+  
+//   HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+  
+  // printf("UART2_Receive_Size : %d \r\n",Forward.USART2_Rx_Buff_Size );
 //  HAL_UART_Transmit(&huart3,ask2,sizeof(ask2),500);
 //  HAL_UART_Transmit(&huart3,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
   USART2_Rx_Analysis(Forward.USART2_Rx_Buff, Forward.USART2_Rx_Buff_Size);
@@ -371,10 +407,16 @@ void USART3_IRQHandler(void)
 	DMA1->IFCR=(1<<21)|(1<<20);
   Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);// huart1.hdmarx->Instance->CNDTR;
 //  HAL_UART_Transmit(&huart3,ask1,sizeof(ask1),500);
-//  HAL_UART_Transmit(&huart3,Forward.USART1_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
+//  HAL_UART_Transmit(&huart1,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
+//  HAL_UART_Transmit(&huart2,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
+//  HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
+//  printf("UART3_Receive_Size : %d \r\n",Forward.USART3_Rx_Buff_Size );
   
-  printf("UART1_Receive_Size : %d \r\n",Forward.USART3_Rx_Buff_Size );
+//  HAL_UART_Transmit(&huart1,Forward.Tail,sizeof(Forward.Tail),500);
+//  HAL_UART_Transmit(&huart1,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
+  
   USART3_Rx_Analysis(Forward.USART3_Rx_Buff, Forward.USART3_Rx_Buff_Size);
+  Forward.Rx_LED_Status=1;
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */

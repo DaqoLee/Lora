@@ -26,6 +26,8 @@ lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_flash_ex.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_iwdg.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_pwr.h
+lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rtc.h
+lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rtc_ex.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 lora\main.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
@@ -39,6 +41,7 @@ lora\main.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
 lora\main.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
 lora\main.o: ../Inc/user_diskio.h
 lora\main.o: ../Inc/iwdg.h
+lora\main.o: ../Inc/rtc.h
 lora\main.o: ../Inc/spi.h
 lora\main.o: ../Inc/tim.h
 lora\main.o: ../Inc/usart.h

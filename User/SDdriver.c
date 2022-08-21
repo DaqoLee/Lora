@@ -26,14 +26,20 @@ void SD_CS(uint8_t p){
 int SD_sendcmd(uint8_t cmd,uint32_t arg,uint8_t crc){
 	uint8_t r1;
   uint8_t retry;
-
+  uint16_t temp=0xFFF0;
+  
   SD_CS(0);
 	HAL_Delay(20);
   SD_CS(1);
 	do{
-		retry=spi_readwrite(DFF);
-	}while(retry!=0xFF);
-
+		retry=spi_readwrite(DFF);    
+	}while(retry!=0xFF && temp--);
+  
+  if(temp ==0)
+  {
+    return 2;
+  }
+  temp=0xFF;
   spi_readwrite(cmd | 0x40);
   spi_readwrite(arg >> 24);
   spi_readwrite(arg >> 16);
@@ -44,8 +50,12 @@ int SD_sendcmd(uint8_t cmd,uint32_t arg,uint8_t crc){
   do
 	{
 		r1=spi_readwrite(0xFF);
-	}while(r1&0X80);
-	
+
+	}while(r1&0X80 && temp--);
+	if(temp ==0)
+  {
+    return 2;
+  }
 	return r1;
 }
 
@@ -59,18 +69,21 @@ uint8_t SD_init(void)
 	uint8_t buff[6] = {0};
 	uint16_t retry; 
 	uint8_t i;
-	
-//	MX_SPI3_Init();
+
+  
+	uint16_t temp=20;
+
 	SPI_setspeed(SPI_BAUDRATEPRESCALER_256);
 	SD_CS(0);
 	for(retry=0;retry<10;retry++){
-			spi_readwrite(DFF);
+		spi_readwrite(DFF);
 	}
 	
 	//SD卡进入IDLE状态
 	do{
 		r1 = SD_sendcmd(CMD0 ,0, 0x95);	
-	}while(r1!=0x01);
+
+	}while(r1!=0x01 && temp--);
 	
 	//查看SD卡的类型
 	SD_TYPE=0;
@@ -149,11 +162,16 @@ uint8_t SD_ReceiveData(uint8_t *data, uint16_t len)
 uint8_t SD_SendBlock(uint8_t*buf,uint8_t cmd)
 {	
 	uint16_t t;	
-uint8_t r1;	
+  uint8_t temp=0xFF;
+  uint8_t r1;	
 	do{
 		r1=spi_readwrite(0xFF);
-	}while(r1!=0xFF);
+	}while(r1!=0xFF && temp--);
 	
+  if(temp ==0)
+  {
+    return 2;
+  }
 	spi_readwrite(cmd);
 	if(cmd!=0XFD)//不是结束指令
 	{
@@ -425,12 +443,21 @@ uint8_t SD_ReadDisk(uint8_t*buf,uint32_t sector,uint8_t cnt)
 
 uint8_t spi_readwrite(uint8_t Txdata){
 	uint8_t Rxdata;	
-	HAL_SPI_TransmitReceive(&hspi1,&Txdata,&Rxdata,1,100);
-	return Rxdata;
+	HAL_SPI_TransmitReceive(&hspi1,&Txdata,&Rxdata,1,100); 
+  return Rxdata;
 }
 //SPI1波特率设置
 void SPI_setspeed(uint8_t speed){
-	hspi1.Init.BaudRatePrescaler = speed;
+	//hspi1.Init.BaudRatePrescaler = speed;
+  __HAL_SPI_DISABLE(&hspi1);	 // 关闭SPI
+	hspi1.Instance = SPI1;
+  hspi1.Init.BaudRatePrescaler = speed;
+	
+  if (HAL_SPI_Init(&hspi1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  __HAL_SPI_ENABLE(&hspi1);		// 使能SPI
 }
 
 

@@ -22,6 +22,7 @@
 #include "dma.h"
 #include "fatfs.h"
 #include "iwdg.h"
+#include "rtc.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -111,15 +112,25 @@ int main(void)
   MX_IWDG_Init();
   MX_SPI1_Init();
   MX_FATFS_Init();
+  MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   HAL_Delay(500);  
-  HAL_TIM_Base_Start_IT(&htim3);  
-  
+
+  __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC); //开启秒中断
 #if SD_CARD_LOG  
 //  SDCardLogInit(&File, SD_FileName);
 
 	res = SD_init();		//SD卡初始化
-  
+  if(res == FR_OK)
+  {
+    Forward.SD_Status = 1;
+    printf("初始化成功！ \r\n");			
+  }
+  else
+  {
+    Forward.SD_Status = 0;
+    printf("初始化失败！ \r\n");
+  }	
 	res = f_mount(&FS,"0:",1);		//挂载
   if(res == FR_OK)
   {
@@ -139,6 +150,7 @@ int main(void)
   {
     printf("文件创建失败！ \r\n");
   }		
+  f_lseek(&File, f_size(&File));
   res = f_write(&File,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
   if(res == FR_OK)
   {
@@ -162,20 +174,31 @@ int main(void)
 
   Logging("UART_ENABLE_IT \r\n");
 //  HAL_Delay(200);   
-  HAL_UART_Receive_DMA(&huart1,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
+  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
   HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
   HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
   
   HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET);
-  HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+
   Logging("UART_Receive_DMA \r\n"); 
-//  HAL_Delay(200); 
-  Read_Lora_ID();
+  HAL_Delay(200); 
+  if(Read_Lora_ID() == HAL_OK)
+  {
+     printf("Lora ID 获取成功！ \r\n");	
+  }
+  else
+  {
+     printf("Lora ID 获取失败！ \r\n");
+  }
   sprintf(LogBuff,"Lora_ID = %d \r\n",Forward.Lora_ID);
   Logging(LogBuff);
+  
+  HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+  HAL_TIM_Base_Start_IT(&htim3);  
 //  
-
+//RTC_TimeTypeDef GetTime; 
+//RTC_DateTypeDef GetData;  //获取日期结构体
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -185,8 +208,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+//    HAL_RTC_GetTime(&hrtc, &GetTime, RTC_FORMAT_BIN);
+//    HAL_RTC_GetDate(&hrtc, &GetData, RTC_FORMAT_BIN);
+//    printf("%02d/%02d/%02d\r\n", 2000+GetData.Year, GetData.Month, GetData.Date);
+//    printf("%02d:%02d:%02d\r\n",GetTime.Hours, GetTime.Minutes, GetTime.Seconds);
     UserLoop();
-    HAL_Delay(5);
+    HAL_Delay(5);//不能低于5ms
     HAL_IWDG_Refresh(&hiwdg); //喂看门狗
 //    
   }
@@ -201,6 +228,7 @@ void SystemClock_Config(void)
 {
   RCC_OscInitTypeDef RCC_OscInitStruct = {0};
   RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
 
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
@@ -227,6 +255,12 @@ void SystemClock_Config(void)
   RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
 
   if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_RTC;
+  PeriphClkInit.RTCClockSelection = RCC_RTCCLKSOURCE_LSI;
+  if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK)
   {
     Error_Handler();
   }

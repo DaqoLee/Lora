@@ -11,11 +11,12 @@
 
 #define USART3_RX_MAX_SIZE 500
 #define USART2_RX_MAX_SIZE 500
+#define USART1_RX_MAX_SIZE 500
 
 #define USART2_TX_MAX_SIZE 100
 #define USART3_TX_MAX_SIZE 500
 
-#define SD_CARD_LOG 0 //1  开启TF卡 1
+#define SD_CARD_LOG 1 //1  开启TF卡 1
 //#define Source node
 
 /* 扩展变量 ------------------------------------------------------------------*/
@@ -23,24 +24,33 @@
 typedef struct
 {
   uint16_t Lora_ID;
+  uint16_t Target_Lora_ID;
+  
+  uint8_t SD_Status;
+  
+  uint8_t Rx_LED_Status;
+  uint8_t Tx_LED_Status;
   
   uint8_t Head[3] ;
   uint8_t Tail[3] ;
   
 //  uint8_t Rx_Head[3] ;
 //  uint8_t Rx_Tail[3] ;
-  
+  uint8_t USART1_Tx_Buff[USART3_TX_MAX_SIZE];  
   uint8_t USART2_Tx_Buff[USART3_TX_MAX_SIZE];//[USART3_RX_MAX_SIZE/USART2_TX_MAX_SIZE + 1][USART2_TX_MAX_SIZE] ;
   uint8_t USART3_Tx_Buff[USART3_TX_MAX_SIZE];
   
   uint8_t USART3_Rx_Buff[USART3_RX_MAX_SIZE];
   uint8_t USART2_Rx_Buff[USART2_RX_MAX_SIZE];
+  uint8_t USART1_Rx_Buff[USART2_RX_MAX_SIZE];
   
   uint16_t USART3_Rx_Buff_Size; 
   uint16_t USART2_Rx_Buff_Size; 
- 
+  uint16_t USART1_Rx_Buff_Size; 
+  
   uint16_t USART3_Tx_Buff_Size; 
   uint16_t USART2_Tx_Buff_Size; 
+  uint16_t USART1_Tx_Buff_Size; 
   
   uint8_t USART3_Rx_End_Flag;  
   uint8_t USART2_Rx_End_Flag;  
@@ -61,7 +71,8 @@ typedef struct
   char Buff[20];
 }DateTime_t;
 
-
+extern RTC_TimeTypeDef GetTime; 
+extern RTC_DateTypeDef GetData;  
 extern uint8_t ReadConfigBuff[18];
 extern Forward_t Forward;
 extern DateTime_t DateTime;
@@ -72,7 +83,7 @@ extern char LogBuff[100];
 
 uint8_t Check(uint8_t *data , uint16_t n);
 void User_Transmit(UART_HandleTypeDef *huart, uint8_t *SendBuf, uint16_t SendLen);
-void Read_Lora_ID(void);
+HAL_StatusTypeDef Read_Lora_ID(void);
 
 
 void USAR3_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size);
