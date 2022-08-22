@@ -36,6 +36,7 @@ Forward_t Forward ={.Lora_ID = 0,
                     
                     .USART3_Rx_End_Flag = 0,
                     .USART2_Rx_End_Flag = 0,
+                    .USART1_Rx_End_Flag = 0,
                     };
 
 
@@ -53,9 +54,11 @@ RTC_TimeTypeDef GetTime;
 RTC_DateTypeDef GetData;                       
                       
 FIL File;
-char SD_FileName[] = "0:LOG001.txt";
+char SD_FileName[] = "2022-08-19_11-31-27";
 char WriteBuffer[2000]={'0'};
 char LogBuff[100]={'0'};
+  FATFS FS;
+  UINT Bw;	
 
 void USAR2_Pack_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size ,uint16_t ID)
 {
@@ -75,23 +78,23 @@ void USAR2_Pack_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size ,uint16_t ID)
   
   Tx_Data[Tx_Size + 10] = Check(Tx_Data, Tx_Size + 10);
   HAL_UART_Transmit(&huart2,Tx_Data ,Tx_Size+11 ,1000);
+//  HAL_UART_Transmit_DMA(&huart2,Tx_Data ,Tx_Size+11);
 }
 
 
 
-/*串口1接收数据，串口2发送数据 */
 void USAR3_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   
   HAL_UART_Transmit(&huart3,Tx_Buff ,Tx_Size ,2000);
-  
+//  HAL_UART_Transmit_DMA(&huart3,Tx_Buff ,Tx_Size);
  //memset(Forward.USART3_Tx_Buff,0,Forward.USART3_Tx_Buff_Size);
  //Forward.USART3_Tx_Buff_Size = 0;
  // HAL_UART_Transmit_DMA(&huart1,Forward.USART3_Tx_Buff ,Forward.USART3_Tx_Buff_Size );
 
 }
 
-/*串口2接收数据，串口1发送数据 */
+
 void USAR2_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   uint8_t temp = 0;
@@ -268,9 +271,10 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
         }
       } 
     }
+    
   }
 
-      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+     HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
 //      break;
 //      
 //    case 0x02 :
@@ -376,22 +380,17 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
 
 HAL_StatusTypeDef Read_Lora_ID(void)
 {
-  uint16_t temp = 0;
+  uint16_t temp = 10;
   do
   {
     Logging("Read_Lora_ID\r\n");
     HAL_Delay(500);
-    HAL_UART_Transmit(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff),500);
-    
-    if(temp++ >10)
-    {
-      break;    
-    }
-   // HAL_UART_Transmit_DMA(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff));
+ //   HAL_UART_Transmit(&huart2,ReadConfigBuff, sizeof(ReadConfigBuff),500);
+    HAL_UART_Transmit_DMA(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff));
     HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-  }while(Forward.Lora_ID == 0);
+  }while(Forward.Lora_ID == 0 && temp--);
   
-  if(temp >10)
+  if(temp <= 0)
   {
     return HAL_TIMEOUT;
   }
@@ -470,54 +469,56 @@ void DateTimeUpdate(uint8_t frequency)
 
 
 
-uint8_t SDCardLogInit(FIL* fp, const void *buff)
+uint8_t SDCardLogInit()
 {
   uint8_t res=0;
-  FATFS FS;
-  UINT Bw;	
 
-	res = SD_init();		//SD卡初始化
-  
-	res = f_mount(&FS,"0:",1);		//挂载
-  if(res == FR_OK)
+
+  if(SD_init() == FR_OK)
   {
+    Forward.SD_Status = 1;
+    printf("初始化成功！ \r\n");			
+  }
+  else
+  {
+    Forward.SD_Status = 0;
+    printf("初始化失败！ \r\n");
+  }	
+	
+  if(f_mount(&FS,"0:",1) == FR_OK)
+  {
+    Forward.SD_Status = 1;
     printf("文件挂载成功！ \r\n");			
   }
   else
   {
+    Forward.SD_Status = 0;
     printf("文件挂载失败！ \r\n");
   }	
- // res = f_getfree("0:", &fre_clust, &fs);	
-  
-  res = f_open(fp,buff,FA_OPEN_ALWAYS |FA_WRITE);//创建文件 
-  if(res == FR_OK)
+  sprintf(SD_FileName,"%02d-%02d-%02d_%02d-%02d-%02d.txt",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
+  if(f_open(&File,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE) == FR_OK)//创建文件 
   {
-    printf("文件创建成功！ \r\n");			
+    printf("文件创建成功！ \r\n");	
+    Forward.SD_Status = 1;		
   }
   else
   {
     printf("文件创建失败！ \r\n");
+    Forward.SD_Status = 0;
   }		
-  res = f_write(fp,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
+  f_lseek(&File, f_size(&File));
+  res = f_write(&File,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
   if(res == FR_OK)
   {
-    printf("文件写入成功！ \r\n");			
+    printf("文件写入成功！ \r\n");	
+    Forward.SD_Status = 1;		
   }
   else
   {
     printf("文件写入失败！ \r\n");
+    Forward.SD_Status = 0;
   }		
-  f_close(fp);
-//  res = f_open(fp, SD_FileName, FA_OPEN_ALWAYS|FA_WRITE);
-//  if(res == FR_OK)
-//  {
-//    printf("文件打开成功！ \r\n");			
-//  }
-//  else
-//  {
-//    printf("文件打开失败！ \r\n");
-//  }
- // res = f_open(fp,buff,FA_OPEN_ALWAYS |FA_WRITE);//创建文件 
+  f_sync(&File);
   return res;
 }
 
@@ -537,121 +538,139 @@ void SD_Write(const void *buff)
     f_lseek(&File, f_size(&File));
     if(f_write(&File,buff,strlen(buff),&Bw) == FR_OK)
     {
-    //  printf("文件写入成功！ \r\n");			
+     // printf("文件写入成功！ \r\n");
+      Forward.SD_Status = 1;			
     }
     else
     {
-   //   printf("文件写入失败！ \r\n");
+      // printf("文件写入失败！ \r\n");
+      Forward.SD_Status = 0;
     }		
     f_sync(&File);
   
-//    res = f_open(fp, SD_FileName, FA_OPEN_ALWAYS|FA_WRITE);
-//    if(res == FR_OK)
-//		{
-//			printf("文件打开成功！ \r\n");			
-//		}
-//		else
-//		{
-//			printf("文件打开失败！ \r\n");
-//		}	
-   // f_lseek(fp, f_size(fp));
-//    res = f_write(fp, buff , btw, bw);
-//  	if(res == FR_OK)
-//		{
-//			printf("文件写入成功！ \r\n");			
-//		}
-//		else
-//		{
-//			printf("文件写入失败！ \r\n");
-//		}		
-//    f_sync(fp);
- //   f_close(fp);   
     res= res;
 }
 
 void LEDStatus(uint16_t frequency)
 {
-  static uint16_t loraTemp=0;
+  static uint16_t loraIDTemp=0;
+//  static uint16_t loraTarIDTemp=0;
   static uint16_t sdTemp=0;
-  static uint8_t ledToggle=0; 
- 
+  static uint8_t ledrToggle=0; 
+//  static uint8_t ledbToggle=0; 
+  
   if(Forward.Lora_ID == 0)
   {
-    if( loraTemp++ >5)
+    if( loraIDTemp++ >5)
     {
-      loraTemp=0;
+      loraIDTemp=0;
       HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);   
     }    
   }
   else
   {
-    if(ledToggle < Forward.Lora_ID)
+    if(ledrToggle < Forward.Lora_ID)
     {
-       loraTemp++;
-      if(loraTemp < frequency/4)
+       loraIDTemp++;
+      if(loraIDTemp < frequency/4)
       {
         
         HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
         
       }
-      else if(loraTemp < frequency/2)
+      else if(loraIDTemp < frequency/2)
       {           
         HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
       }
       else
       {
-        loraTemp = 0;
-        ledToggle++;   
+        loraIDTemp = 0;
+        ledrToggle++;   
       }
     }
     else
     {
       HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-      loraTemp++;
-      if(loraTemp >= frequency)
+      loraIDTemp++;
+      if(loraIDTemp >= frequency)
       {
-        loraTemp = 0;
-        ledToggle = 0;         
-      }
-    
+        loraIDTemp = 0;
+        ledrToggle = 0;         
+      }   
     } 
+    
+    
+//    if(ledbToggle < Forward.Target_Lora_ID)
+//    {
+//       loraTarIDTemp++;
+//      if(loraTarIDTemp < frequency/4)
+//      {
+//        
+//        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+//        
+//      }
+//      else if(loraTarIDTemp < frequency/2)
+//      {           
+//        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+//      }
+//      else
+//      {
+//        loraTarIDTemp = 0;
+//        ledbToggle++;   
+//      }
+//    }
+//    else
+//    {
+//      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+//      loraTarIDTemp++;
+//      if(loraTarIDTemp >= frequency)
+//      {
+//        loraTarIDTemp = 0;
+//        ledbToggle = 0;         
+//      }   
+//    } 
   }
   
-//  if(Forward.SD_Status==0)
-//  {
+  if(Forward.SD_Status==0)
+  {
 //   if( sdTemp++ >5)
 //    {
 //      sdTemp=0;
-//      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin);   
+//      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
+    HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);    
 //    }    
-//  }
-  
-  if(Forward.Rx_LED_Status==1)
+  }
+  else
   {
-    sdTemp++;
-//    HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
-    if(sdTemp < frequency/8)
-    {
-      
-      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
-      
-    }
-    else if(sdTemp < frequency/4)
-    {           
-      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
-    }
-    else
-    {
-      sdTemp = 0;
-      Forward.Rx_LED_Status=0;
-      //HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
-    }
+    HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+  }
+  
+//  if(Forward.Rx_LED_Status==1)
+//  {
+//    sdTemp++;
+////    HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
+//    if(sdTemp < frequency/8)
+//    {
+//      
+//      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+//      
+//    }
+//    else if(sdTemp < frequency/4)
+//    {           
+//      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+//    }
+//    else
+//    {
+//      sdTemp = 0;
+//      Forward.Rx_LED_Status=0;
+//      //HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+//    }
 //   if( sdTemp++ >9)
 //    {
 //      sdTemp=0;
 //       Forward.Rx_LED_Status=0;
 //    }    
-  }
+//  }
 
 }
 
@@ -669,13 +688,15 @@ void Logging(const void *buff)
 
 void UserLoop(void)
 {
+  static uint8_t temp=0;
   if( Forward.USART2_Rx_End_Flag == 1)
   {
     sprintf(LogBuff,"%s:\t USART2 receive  %d byte \r\n",DateTime.Buff, Forward.USART2_Rx_Buff_Size);
     Logging(LogBuff);
     USAR3_Transmit(Forward.USART3_Tx_Buff, Forward.USART3_Tx_Buff_Size);
     HAL_Delay(500);
-//    HAL_UART_Transmit(&huart1,Forward.USART3_Tx_Buff,Forward.USART3_Tx_Buff_Size,500);
+    HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
+    HAL_UART_Transmit(&huart1,Forward.USART3_Tx_Buff,Forward.USART3_Tx_Buff_Size,500);
     sprintf(LogBuff,"%s:\t USART3 transmit %d byte \r\n",DateTime.Buff,Forward.USART3_Tx_Buff_Size );
     Logging(LogBuff);
     Forward.USART2_Rx_End_Flag = 0;     
@@ -690,7 +711,10 @@ void UserLoop(void)
     sprintf(LogBuff,"%s:\t USART2 receive  %d byte \r\n",DateTime.Buff, Forward.USART3_Rx_Buff_Size);
     Logging(LogBuff);      
     USAR2_Transmit(Forward.USART2_Tx_Buff, Forward.USART2_Tx_Buff_Size);
-//    HAL_UART_Transmit(&huart1,Forward.USART2_Tx_Buff,Forward.USART2_Tx_Buff_Size,500);
+    
+    HAL_UART_Transmit(&huart1,Forward.Tail,sizeof(Forward.Tail),500);
+    HAL_UART_Transmit(&huart1,Forward.USART2_Tx_Buff,Forward.USART2_Tx_Buff_Size,500);
+    
     sprintf(LogBuff,"%s:\t USART2 transmit %d byte \r\n",DateTime.Buff,Forward.USART2_Tx_Buff_Size );
     Logging(LogBuff);     
     Forward.USART3_Rx_End_Flag = 0;
@@ -699,13 +723,24 @@ void UserLoop(void)
     memset(Forward.USART3_Rx_Buff,0,USART3_RX_MAX_SIZE);
     HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
   }
+  
+  if( Forward.SD_Status == 0)
+  {  
+    if( temp++ >200)
+    {
+      SDCardLogInit();
+      temp = 0;
+    } 
+  }
 }
 
 void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
 {
     HAL_RTC_GetTime(hrtc, &GetTime, RTC_FORMAT_BIN);
     HAL_RTC_GetDate(hrtc, &GetData, RTC_FORMAT_BIN);
-    sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
+  
+  
+   sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//10ms更新中断（溢出）发生时执行

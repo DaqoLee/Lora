@@ -344,18 +344,19 @@ void TIM3_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除标志位
-//  
+  __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除标志位 
   HAL_UART_DMAStop(&huart1);
 
-	DMA1->IFCR=(1<<21)|(1<<20);
-  
+//	DMA1->IFCR=(1<<21)|(1<<20);
+//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC5);
   Forward.USART1_Rx_Buff_Size = USART1_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
 
+//  HAL_UART_Transmit_DMA(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size);
+  HAL_UART_Transmit(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size,500);
+  Forward.USART1_Rx_End_Flag = 1;
   
-//  HAL_UART_Transmit(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size,500);
-//  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
-  
+  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
+ 
 //  Forward.Rx_LED_Status=1;
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
@@ -372,20 +373,26 @@ void USART2_IRQHandler(void)
   /* USER CODE BEGIN USART2_IRQn 0 */
   __HAL_UART_CLEAR_IDLEFLAG(&huart2);//清除标志位
   HAL_UART_DMAStop(&huart2);
-	DMA1->IFCR=(1<<21)|(1<<20);
-  
+//	DMA1->IFCR=(1<<21)|(1<<20);
+//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC6);
   
   Forward.USART2_Rx_Buff_Size = USART2_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);// huart1.hdmarx->Instance->CNDTR;
-//   HAL_UART_Transmit(&huart3,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500); 
+  if(Forward.USART1_Rx_End_Flag == 1)
+  {
+     Forward.USART1_Rx_End_Flag = 0;
+    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);  
+   //  HAL_UART_Transmit_DMA(&huart1, Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size);
+  //   HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+    
+  } 
+  else
+  {
+//    HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
+//    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
+//  
+  }
   
-//   HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
-//   HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500); 
-  
-//   HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-  
-  // printf("UART2_Receive_Size : %d \r\n",Forward.USART2_Rx_Buff_Size );
-//  HAL_UART_Transmit(&huart3,ask2,sizeof(ask2),500);
-//  HAL_UART_Transmit(&huart3,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
+
   USART2_Rx_Analysis(Forward.USART2_Rx_Buff, Forward.USART2_Rx_Buff_Size);
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
@@ -403,15 +410,11 @@ void USART3_IRQHandler(void)
   __HAL_UART_CLEAR_IDLEFLAG(&huart3);//清除标志位
   
   HAL_UART_DMAStop(&huart3);
-
-	DMA1->IFCR=(1<<21)|(1<<20);
-  Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);// huart1.hdmarx->Instance->CNDTR;
-//  HAL_UART_Transmit(&huart3,ask1,sizeof(ask1),500);
-//  HAL_UART_Transmit(&huart1,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
-//  HAL_UART_Transmit(&huart2,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
-//  HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
-//  printf("UART3_Receive_Size : %d \r\n",Forward.USART3_Rx_Buff_Size );
+//	DMA1->IFCR=(1<<21)|(1<<20);
+//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC6);
   
+  Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);// huart1.hdmarx->Instance->CNDTR;
+
 //  HAL_UART_Transmit(&huart1,Forward.Tail,sizeof(Forward.Tail),500);
 //  HAL_UART_Transmit(&huart1,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
   

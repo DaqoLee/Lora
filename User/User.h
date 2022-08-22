@@ -54,7 +54,7 @@ typedef struct
   
   uint8_t USART3_Rx_End_Flag;  
   uint8_t USART2_Rx_End_Flag;  
-  
+  uint8_t USART1_Rx_End_Flag; 
 }Forward_t;
 
 
@@ -92,7 +92,7 @@ void USART3_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
 void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
 void UserLoop(void);
 void HexToStr(uint8_t *hex, uint16_t n, char *str);
-uint8_t SDCardLogInit(FIL* fp, const void *buff);
+uint8_t SDCardLogInit(void);
 void Logging(const void *buff);
 
 #endif

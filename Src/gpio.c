@@ -52,7 +52,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, USER_LED_Pin|SPI1_CS_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, DEV_LED_TX_Pin|DEV_LED_RX_Pin|LORA_RST_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(GPIOB, DEV_LED_TX_Pin|DEV_LED_RX_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(LORA_RST_GPIO_Port, LORA_RST_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin : PtPin */
   GPIO_InitStruct.Pin = USER_LED_Pin;

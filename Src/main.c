@@ -78,9 +78,9 @@ int main(void)
 {
   /* USER CODE BEGIN 1 */
  #if SD_CARD_LOG  
-  uint8_t res=0;
-  FATFS FS;
-  UINT Bw;	
+//  uint8_t res=0;
+//  FATFS FS;
+//  UINT Bw;	
 #endif
 //  uint16_t FileSize ;
 //  uint16_t temp=0;
@@ -109,59 +109,18 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-  MX_IWDG_Init();
+//  MX_IWDG_Init();
   MX_SPI1_Init();
   MX_FATFS_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
-  HAL_Delay(500);  
+ 
 
   __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC); //开启秒中断
+   HAL_Delay(1500);  
 #if SD_CARD_LOG  
-//  SDCardLogInit(&File, SD_FileName);
+  SDCardLogInit();
 
-	res = SD_init();		//SD卡初始化
-  if(res == FR_OK)
-  {
-    Forward.SD_Status = 1;
-    printf("初始化成功！ \r\n");			
-  }
-  else
-  {
-    Forward.SD_Status = 0;
-    printf("初始化失败！ \r\n");
-  }	
-	res = f_mount(&FS,"0:",1);		//挂载
-  if(res == FR_OK)
-  {
-    printf("文件挂载成功！ \r\n");			
-  }
-  else
-  {
-    printf("文件挂载失败！ \r\n");
-  }	
-
-  res = f_open(&File,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);//创建文件 
-  if(res == FR_OK)
-  {
-    printf("文件创建成功！ \r\n");			
-  }
-  else
-  {
-    printf("文件创建失败！ \r\n");
-  }		
-  f_lseek(&File, f_size(&File));
-  res = f_write(&File,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
-  if(res == FR_OK)
-  {
-    printf("文件写入成功！ \r\n");			
-  }
-  else
-  {
-    printf("文件写入失败！ \r\n");
-  }		
-  f_sync(&File);
-//  f_close(&File);
 #endif  
  
   Logging("System init\r\n");
@@ -214,7 +173,7 @@ int main(void)
 //    printf("%02d:%02d:%02d\r\n",GetTime.Hours, GetTime.Minutes, GetTime.Seconds);
     UserLoop();
     HAL_Delay(5);//不能低于5ms
-    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
+//    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
 //    
   }
   /* USER CODE END 3 */
