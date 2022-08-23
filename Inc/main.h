@@ -68,6 +68,8 @@ void Error_Handler(void);
 #define DEV_LED_RX_GPIO_Port GPIOB
 #define LORA_RST_Pin GPIO_PIN_3
 #define LORA_RST_GPIO_Port GPIOB
+#define KEY1_Pin GPIO_PIN_8
+#define KEY1_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

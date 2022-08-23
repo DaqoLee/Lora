@@ -46,3 +46,5 @@ lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 lora\user.o: ..\User\SDdriver.h
+lora\user.o: ..\User\key.h
+lora\user.o: ..\User\Flash.h

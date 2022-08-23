@@ -5,14 +5,17 @@
 #include "stdio.h"
 #include "string.h"
 #include "SDdriver.h"   
-
+#include "key.h"
+#include "Flash.h"
 
 uint8_t ReadConfigBuff[18]={0x01, 0x00, 0x02, 0x0D, 0xA5, 0xA5, 0x00, 0x00, 0x00, 
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E };//01 00 02 0D A5 A5 00 00 00 00 00 00 00 00 00 00 00 0E
 
 Forward_t Forward ={.Lora_ID = 0,
+                    .Last_Lora_ID=0,
                     .Target_Lora_ID = 1,
                     .SD_Status=0,
+                    .Key_ID_Status=0,
   
                     .Rx_LED_Status=0,
                     .Tx_LED_Status=0,
@@ -37,6 +40,7 @@ Forward_t Forward ={.Lora_ID = 0,
                     .USART3_Rx_End_Flag = 0,
                     .USART2_Rx_End_Flag = 0,
                     .USART1_Rx_End_Flag = 0,
+                    .Read_ID_Flag = 0,
                     };
 
 
@@ -219,28 +223,7 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
 //  switch(Forward.Lora_ID)
 //  {  
 //    case 0x01 :
-  if(Forward.Lora_ID ==0)
-  {
-    if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82)
-    {
-       if(Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
-       {
-          Forward.Lora_ID = Rx_Buff[Rx_Size - 5] | Rx_Buff[Rx_Size - 4];
-         
-         if(Forward.Lora_ID == 1)
-         {
-           Forward.Target_Lora_ID = 3;
-         
-         }
-         else
-         {
-           Forward.Target_Lora_ID = 1;
-         }
-       }
-    } 
-  }
-  else
-  {
+ 
     if(Rx_Buff[0] == 0x05 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82 && Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
     {
       if(Rx_Buff[7] == 3 && Rx_Buff[8] == 0xAA && Rx_Buff[9] == 0xAA && Rx_Buff[10] == 0xAA)
@@ -271,8 +254,16 @@ void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size)
         }
       } 
     }
+    else if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82)
+    {
+       if(Rx_Buff[Rx_Size-1] == Check(Rx_Buff,Rx_Size-1))
+       {
+          Forward.Lora_ID = Rx_Buff[Rx_Size - 5] | Rx_Buff[Rx_Size - 4];
+         
+       }
+    } 
     
-  }
+  
 
      HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
 //      break;
@@ -385,11 +376,12 @@ HAL_StatusTypeDef Read_Lora_ID(void)
   {
     Logging("Read_Lora_ID\r\n");
     HAL_Delay(500);
- //   HAL_UART_Transmit(&huart2,ReadConfigBuff, sizeof(ReadConfigBuff),500);
-    HAL_UART_Transmit_DMA(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff));
+    HAL_UART_Transmit(&huart2,ReadConfigBuff, sizeof(ReadConfigBuff),500);
+//    HAL_UART_Transmit_DMA(&huart2, ReadConfigBuff, sizeof(ReadConfigBuff));
     HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-  }while(Forward.Lora_ID == 0 && temp--);
+  }while(Forward.Lora_ID == Forward.Last_Lora_ID && temp--);
   
+  Forward.Last_Lora_ID = Forward.Lora_ID;
   if(temp <= 0)
   {
     return HAL_TIMEOUT;
@@ -398,6 +390,33 @@ HAL_StatusTypeDef Read_Lora_ID(void)
   {
     return HAL_OK;
   } 
+}
+
+
+void Write_Lora_ID(uint16_t ID)
+{
+  uint8_t Tx_Data[18];
+  
+  Tx_Data[0] = 0x01;
+  Tx_Data[1] = 0x00;
+  Tx_Data[2] = 0x01;
+  Tx_Data[3] = 0x0D;
+  Tx_Data[4] = 0xA5;
+  Tx_Data[5] = 0XA5;
+  Tx_Data[6] = 0x6C;
+  Tx_Data[7] = 0x80;
+  Tx_Data[8] = 0x12;
+  Tx_Data[9] = 0x07;
+  Tx_Data[10] = 0X17;
+  Tx_Data[11] = 0x00;
+  Tx_Data[12] = 0x00;
+  Tx_Data[13] = ID>>8;
+  Tx_Data[14] = ID;  
+  Tx_Data[15] = 0x03;
+  Tx_Data[16] = 0x00;
+  Tx_Data[17] = Check(Tx_Data,17);
+  
+  HAL_UART_Transmit(&huart2,Tx_Data ,18 ,1000);
 }
 
 
@@ -555,7 +574,7 @@ void LEDStatus(uint16_t frequency)
 {
   static uint16_t loraIDTemp=0;
 //  static uint16_t loraTarIDTemp=0;
-  static uint16_t sdTemp=0;
+//  static uint16_t sdTemp=0;
   static uint8_t ledrToggle=0; 
 //  static uint8_t ledbToggle=0; 
   
@@ -564,23 +583,23 @@ void LEDStatus(uint16_t frequency)
     if( loraIDTemp++ >5)
     {
       loraIDTemp=0;
-      HAL_GPIO_TogglePin(USER_LED_GPIO_Port, USER_LED_Pin);   
+      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin);   
     }    
   }
-  else
+  else 
   {
-    if(ledrToggle < Forward.Lora_ID)
+    if(ledrToggle < Forward.Lora_ID && Forward.Key_ID_Status == 0)
     {
        loraIDTemp++;
       if(loraIDTemp < frequency/4)
       {
         
-        HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
+        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
         
       }
       else if(loraIDTemp < frequency/2)
       {           
-        HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
       }
       else
       {
@@ -588,15 +607,40 @@ void LEDStatus(uint16_t frequency)
         ledrToggle++;   
       }
     }
+     else if((ledrToggle - Forward.Lora_ID) < Forward.Target_Lora_ID && Forward.Key_ID_Status == 0)
+    {
+       loraIDTemp++;
+      if(loraIDTemp < frequency/4)
+      {
+        
+        HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET);
+        
+      }
+      else if(loraIDTemp < frequency/2)
+      {           
+        HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
+      }
+      else
+      {
+        loraIDTemp = 0;
+        ledrToggle++;   
+      }
+    }   
     else
     {
-      HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-      loraIDTemp++;
-      if(loraIDTemp >= frequency)
+      if(Forward.Key_ID_Status == 0)
+      {
+        loraIDTemp = 0;
+        ledrToggle = 0;  
+      }
+      else if(loraIDTemp >= frequency)
       {
         loraIDTemp = 0;
         ledrToggle = 0;         
-      }   
+      } 
+      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
+      loraIDTemp++;      
     } 
     
     
@@ -637,12 +681,12 @@ void LEDStatus(uint16_t frequency)
 //    {
 //      sdTemp=0;
 //      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
-    HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);    
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);    
 //    }    
   }
   else
   {
-    HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
   }
   
 //  if(Forward.Rx_LED_Status==1)
@@ -724,14 +768,160 @@ void UserLoop(void)
     HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
   }
   
-  if( Forward.SD_Status == 0)
-  {  
-    if( temp++ >200)
+//  if( Forward.SD_Status == 0)
+//  {  
+//    if( temp++ >200)
+//    {
+//      SDCardLogInit();
+//      temp = 0;
+//    } 
+//  }
+  
+  if(Forward.Read_ID_Flag == 1)
+  {
+    Forward.Read_ID_Flag = 0;
+    if(Read_Lora_ID() == HAL_OK)
     {
-      SDCardLogInit();
-      temp = 0;
-    } 
+       printf("Lora ID »ñÈ¡³É¹¦£¡ \r\n");	
+    }
+    else
+    {
+       printf("Lora ID »ñÈ¡Ê§°Ü£¡ \r\n");
+    }
   }
+}
+
+
+void SetLoraID(void)
+{
+
+   static uint8_t loraId = 0;
+   static uint8_t tarLoraId = 0;
+   static uint16_t timer=0;
+  
+   Key_Process();
+  
+
+//  if(userKeyList[KEY_1].KeyStatus)
+//  {
+//    if(keyTemp==0)
+//    {
+//      HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);    
+//    }
+//    else if(keyTemp==1)
+//    {
+//      HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET); 
+//    }
+//    
+//  }
+  if(userKeyList[KEY_1].longPressedJump)
+  {
+    if(  Forward.Key_ID_Status ++ > 2)
+    {
+      Forward.Key_ID_Status = 1;
+    }
+  
+  }
+  
+  switch(Forward.Key_ID_Status)
+  {
+    case 0:
+      loraId = 0;
+      tarLoraId = 0;
+
+    break;
+    
+    case 1:
+      
+      if(userKeyList[KEY_1].keyPressedJump)
+      {       
+        loraId++;
+        timer = 0;     
+       
+      }
+      else if(userKeyList[KEY_1].longPressed)
+      {         
+        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+      }
+      else if(userKeyList[KEY_1].KeyStatus)
+      {         
+        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+      }
+      else 
+      { 
+        HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_SET);
+        if( timer++ > 200)
+        {
+          if(loraId > 0)
+          {
+            Write_Lora_ID(loraId);
+            Forward.Read_ID_Flag = 1;
+            //Read_Lora_ID();
+            //Forward.Lora_ID = loraId;
+          }
+          Forward.Key_ID_Status = 0;
+          timer = 0;
+          HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
+        }
+      }
+    break;
+        
+    case 2:
+      
+      if(userKeyList[KEY_1].keyPressedJump)
+      {       
+        tarLoraId++;
+        timer = 0;     
+       
+      }
+      else if(userKeyList[KEY_1].longPressed)
+      {         
+        HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET);
+      }
+      else if(userKeyList[KEY_1].KeyStatus)
+      {         
+        HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
+      }
+      else 
+      { 
+        HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_SET);
+        if( timer++ > 200)
+        {
+          if(tarLoraId > 0)
+          {
+            Forward.Target_Lora_ID = tarLoraId;
+            WriteTarIDFlash(Forward.Target_Lora_ID);
+          }
+          Forward.Key_ID_Status = 0;
+          timer = 0;
+          HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
+        }
+      }
+      
+    break;
+  
+  }
+  
+}
+
+
+void WriteTarIDFlash(uint16_t TarID)
+{
+  uint8_t data[4];
+  
+  data[0] = TarID>>8;
+  data[1] = TarID;  
+
+  Flash_Write((u32*)data,1);
+}
+
+void ReadTarIDFlash(void)
+{
+  uint8_t data[4];
+  Flash_Read((u32*)data,1);
+  
+  Forward.Target_Lora_ID = data[0]<<8 | data[1];
+  
 }
 
 void HAL_RTCEx_RTCEventCallback(RTC_HandleTypeDef *hrtc)
@@ -749,6 +939,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//10ms¸üÐÂÖÐ¶Ï£¨Òç³ö£
 	{
 
 		LEDStatus(100);
+   SetLoraID();
+    
 	}
 
 }

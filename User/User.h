@@ -24,9 +24,12 @@
 typedef struct
 {
   uint16_t Lora_ID;
+  uint16_t Last_Lora_ID;
   uint16_t Target_Lora_ID;
+ 
   
   uint8_t SD_Status;
+  uint8_t Key_ID_Status;
   
   uint8_t Rx_LED_Status;
   uint8_t Tx_LED_Status;
@@ -55,6 +58,7 @@ typedef struct
   uint8_t USART3_Rx_End_Flag;  
   uint8_t USART2_Rx_End_Flag;  
   uint8_t USART1_Rx_End_Flag; 
+  uint8_t Read_ID_Flag;
 }Forward_t;
 
 
@@ -94,6 +98,8 @@ void UserLoop(void);
 void HexToStr(uint8_t *hex, uint16_t n, char *str);
 uint8_t SDCardLogInit(void);
 void Logging(const void *buff);
+void WriteTarIDFlash(uint16_t TarID);
+void ReadTarIDFlash(void);
 
 #endif
 

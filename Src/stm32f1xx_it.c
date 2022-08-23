@@ -55,8 +55,7 @@
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-uint8_t ask1[] = {0xAA, 0xAA, 0xAA};
-uint8_t ask2[] = {0xBB, 0xBB, 0xBB};
+
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/

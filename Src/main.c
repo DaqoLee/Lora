@@ -152,6 +152,11 @@ int main(void)
   sprintf(LogBuff,"Lora_ID = %d \r\n",Forward.Lora_ID);
   Logging(LogBuff);
   
+  ReadTarIDFlash();
+//  
+  sprintf(LogBuff,"Lora_Target_ID = %d \r\n",Forward.Target_Lora_ID);
+  Logging(LogBuff);
+  
   HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
   HAL_TIM_Base_Start_IT(&htim3);  
