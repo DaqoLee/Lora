@@ -1,6 +1,10 @@
 #include "SDdriver.h"
 #include "spi.h"
 #include "ff.h"
+#include <math.h>
+#include "stdio.h"
+#include "string.h"
+#include "User.h"
 
 uint8_t DFF=0xFF;
 uint8_t test;
@@ -8,6 +12,14 @@ uint8_t SD_TYPE=0x00;
 
 MSD_CARDINFO SD0_CardInfo;
 
+
+FIL File;
+char SD_FileName[] = "2022-08-19_11-31-27";
+char WriteBuffer[2000]={'0'};
+char LogBuff[100]={'0'};
+FATFS FS;
+UINT Bw;	
+uint8_t SD_Status = 0 ;
 //////////////////////////////////////////////////////////////
 //片选
 //////////////////////////////////////////////////////////////
@@ -461,7 +473,87 @@ void SPI_setspeed(uint8_t speed){
 }
 
 
+uint8_t SDCardLogInit(void)
+{
+  uint8_t res=0;
 
+
+  if(SD_init() == FR_OK)
+  {
+    SD_Status = 1;
+    printf("初始化成功！ \r\n");			
+  }
+  else
+  {
+    SD_Status = 0;
+    printf("初始化失败！ \r\n");
+  }	
+	
+  if(f_mount(&FS,"0:",1) == FR_OK)
+  {
+    SD_Status = 1;
+    printf("文件挂载成功！ \r\n");			
+  }
+  else
+  {
+    SD_Status = 0;
+    printf("文件挂载失败！ \r\n");
+  }	
+  sprintf(SD_FileName,"%02d-%02d-%02d_%02d-%02d-%02d.txt",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
+  if(f_open(&File,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE) == FR_OK)//创建文件 
+  {
+    printf("文件创建成功！ \r\n");	
+    SD_Status = 1;		
+  }
+  else
+  {
+    printf("文件创建失败！ \r\n");
+    SD_Status = 0;
+  }		
+  f_lseek(&File, f_size(&File));
+  res = f_write(&File,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
+  if(res == FR_OK)
+  {
+    printf("文件写入成功！ \r\n");	
+    SD_Status = 1;		
+  }
+  else
+  {
+    printf("文件写入失败！ \r\n");
+    SD_Status = 0;
+  }		
+  f_sync(&File);
+  return res;
+}
+
+void SD_Write(const void *buff)
+{
+  	uint8_t res=0;
+    UINT Bw;	
+
+//    if(f_open(&File, SD_FileName, FA_OPEN_ALWAYS|FA_WRITE) == FR_OK)
+//    {
+//      printf("文件打开成功！ \r\n");			
+//    }
+//    else
+//    {
+//      printf("文件打开失败！ \r\n");
+//    }
+    f_lseek(&File, f_size(&File));
+    if(f_write(&File,buff,strlen(buff),&Bw) == FR_OK)
+    {
+     // printf("文件写入成功！ \r\n");
+      SD_Status = 1;			
+    }
+    else
+    {
+      // printf("文件写入失败！ \r\n");
+      SD_Status = 0;
+    }		
+    f_sync(&File);
+  
+    res= res;
+}
 
 
 

@@ -40,11 +40,14 @@ lora\user.o: ../Inc/ffconf.h
 lora\user.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
 lora\user.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
 lora\user.o: ../Inc/user_diskio.h
-lora\user.o: ../Inc/tim.h
 lora\user.o: ../Inc/usart.h
+lora\user.o: ../Inc/tim.h
 lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 lora\user.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 lora\user.o: ..\User\SDdriver.h
 lora\user.o: ..\User\key.h
 lora\user.o: ..\User\Flash.h
+lora\user.o: ..\User\LED.h
+lora\user.o: ..\User\Lora.h
+lora\user.o: ..\User\FTU.h

@@ -25,7 +25,8 @@
 /* USER CODE BEGIN Includes */
 #include "User.h"
 #include "stdio.h"
-
+#include "Lora.h"
+#include "FTU.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -273,7 +274,7 @@ void DMA1_Channel3_IRQHandler(void)
 void DMA1_Channel4_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel4_IRQn 0 */
-
+//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC4);
   /* USER CODE END DMA1_Channel4_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_tx);
   /* USER CODE BEGIN DMA1_Channel4_IRQn 1 */
@@ -287,7 +288,7 @@ void DMA1_Channel4_IRQHandler(void)
 void DMA1_Channel5_IRQHandler(void)
 {
   /* USER CODE BEGIN DMA1_Channel5_IRQn 0 */
-
+//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC5);
   /* USER CODE END DMA1_Channel5_IRQn 0 */
   HAL_DMA_IRQHandler(&hdma_usart1_rx);
   /* USER CODE BEGIN DMA1_Channel5_IRQn 1 */
@@ -343,20 +344,9 @@ void TIM3_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除标志位 
-  HAL_UART_DMAStop(&huart1);
-
-//	DMA1->IFCR=(1<<21)|(1<<20);
-//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC5);
-  Forward.USART1_Rx_Buff_Size = USART1_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);// huart1.hdmarx->Instance->CNDTR;
-
-//  HAL_UART_Transmit_DMA(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size);
-  HAL_UART_Transmit(&huart2,Forward.USART1_Rx_Buff,Forward.USART1_Rx_Buff_Size,500);
-  Forward.USART1_Rx_End_Flag = 1;
   
-  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
- 
-//  Forward.Rx_LED_Status=1;
+  User_IRQHandler();
+  
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -370,29 +360,9 @@ void USART1_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-  __HAL_UART_CLEAR_IDLEFLAG(&huart2);//清除标志位
-  HAL_UART_DMAStop(&huart2);
-//	DMA1->IFCR=(1<<21)|(1<<20);
-//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC6);
   
-  Forward.USART2_Rx_Buff_Size = USART2_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart2_rx);// huart1.hdmarx->Instance->CNDTR;
-  if(Forward.USART1_Rx_End_Flag == 1)
-  {
-     Forward.USART1_Rx_End_Flag = 0;
-    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);  
-   //  HAL_UART_Transmit_DMA(&huart1, Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size);
-  //   HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-    
-  } 
-  else
-  {
-//    HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
-//    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
-//  
-  }
-  
+  Lora_IRQHandler();
 
-  USART2_Rx_Analysis(Forward.USART2_Rx_Buff, Forward.USART2_Rx_Buff_Size);
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */
@@ -406,19 +376,9 @@ void USART2_IRQHandler(void)
 void USART3_IRQHandler(void)
 {
   /* USER CODE BEGIN USART3_IRQn 0 */
-  __HAL_UART_CLEAR_IDLEFLAG(&huart3);//清除标志位
   
-  HAL_UART_DMAStop(&huart3);
-//	DMA1->IFCR=(1<<21)|(1<<20);
-//  __HAL_DMA_CLEAR_FLAG(DMA1,DMA_FLAG_TC6);
-  
-  Forward.USART3_Rx_Buff_Size = USART3_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(&hdma_usart3_rx);// huart1.hdmarx->Instance->CNDTR;
+  FTU_IRQHandler();
 
-//  HAL_UART_Transmit(&huart1,Forward.Tail,sizeof(Forward.Tail),500);
-//  HAL_UART_Transmit(&huart1,Forward.USART3_Rx_Buff,Forward.USART3_Rx_Buff_Size,500);
-  
-  USART3_Rx_Analysis(Forward.USART3_Rx_Buff, Forward.USART3_Rx_Buff_Size);
-  Forward.Rx_LED_Status=1;
   /* USER CODE END USART3_IRQn 0 */
   HAL_UART_IRQHandler(&huart3);
   /* USER CODE BEGIN USART3_IRQn 1 */
@@ -429,4 +389,3 @@ void USART3_IRQHandler(void)
 /* USER CODE BEGIN 1 */
 
 /* USER CODE END 1 */
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

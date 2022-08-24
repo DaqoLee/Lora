@@ -46,7 +46,9 @@ lora\main.o: ../Inc/spi.h
 lora\main.o: ../Inc/tim.h
 lora\main.o: ../Inc/usart.h
 lora\main.o: ../Inc/gpio.h
-lora\main.o: ..\User\User.h
+lora\main.o: ../User/User.h
 lora\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 lora\main.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-lora\main.o: ..\User\SDdriver.h
+lora\main.o: ../User/SDdriver.h
+lora\main.o: ../User/Lora.h
+lora\main.o: ../User/FTU.h

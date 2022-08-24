@@ -37,3 +37,12 @@ lora\sddriver.o: ../Inc/spi.h
 lora\sddriver.o: ../Middlewares/Third_Party/FatFs/src/ff.h
 lora\sddriver.o: ../Middlewares/Third_Party/FatFs/src/integer.h
 lora\sddriver.o: ../Inc/ffconf.h
+lora\sddriver.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+lora\sddriver.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+lora\sddriver.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
+lora\sddriver.o: ..\User\User.h
+lora\sddriver.o: ../Inc/fatfs.h
+lora\sddriver.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
+lora\sddriver.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
+lora\sddriver.o: ../Inc/user_diskio.h
+lora\sddriver.o: ../Inc/usart.h

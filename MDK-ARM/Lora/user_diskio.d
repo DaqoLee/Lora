@@ -38,4 +38,4 @@ lora\user_diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 lora\user_diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 lora\user_diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 lora\user_diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-lora\user_diskio.o: ..\User\SDdriver.h
+lora\user_diskio.o: ../User/SDdriver.h

@@ -126,6 +126,7 @@ MSD_CARDINFO, *PMSD_CARDINFO;
 
 extern MSD_CARDINFO SD0_CardInfo;
 
+extern uint8_t SD_Status;
 
 uint8_t		 	SD_init(void);
 void 				SD_CS(uint8_t p);
@@ -142,8 +143,8 @@ uint8_t 		SD_WriteDisk(uint8_t*buf,uint32_t sector,uint8_t cnt);
 void SPI_setspeed(uint8_t speed);
 uint8_t spi_readwrite(uint8_t Txdata);
 
-
-
+uint8_t SDCardLogInit(void);
+void SD_Write(const void *buff);
 
 
 

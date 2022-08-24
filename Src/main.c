@@ -34,6 +34,8 @@
 #include "stdio.h"
 #include "string.h"
 #include "SDdriver.h"
+#include "Lora.h"
+#include "FTU.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -114,55 +116,22 @@ int main(void)
   MX_FATFS_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
- 
-
   __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC); //开启秒中断
-   HAL_Delay(1500);  
+  sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
 #if SD_CARD_LOG  
   SDCardLogInit();
-
-#endif  
- 
-  Logging("System init\r\n");
-
- // printf("System init---------------------------------------------------------------------------------- \r\n");
-//  HAL_Delay(200);
-	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE );
-	__HAL_UART_ENABLE_IT(&huart2,UART_IT_IDLE );
-	__HAL_UART_ENABLE_IT(&huart3,UART_IT_IDLE );  
-
-  Logging("UART_ENABLE_IT \r\n");
-//  HAL_Delay(200);   
-  HAL_UART_Receive_DMA(&huart1,Forward.USART1_Rx_Buff,USART1_RX_MAX_SIZE);
-  HAL_UART_Receive_DMA(&huart3,Forward.USART3_Rx_Buff,USART3_RX_MAX_SIZE);
-  HAL_UART_Receive_DMA(&huart2,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
+#endif    
+  HAL_Delay(500);
+  Lora_Init();
+  User_Init();
+  FTU_Init();
   
-  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);
-
-  Logging("UART_Receive_DMA \r\n"); 
-  HAL_Delay(200); 
-  if(Read_Lora_ID() == HAL_OK)
-  {
-     printf("Lora ID 获取成功！ \r\n");	
-  }
-  else
-  {
-     printf("Lora ID 获取失败！ \r\n");
-  }
-  sprintf(LogBuff,"Lora_ID = %d \r\n",Forward.Lora_ID);
-  Logging(LogBuff);
   
-  ReadTarIDFlash();
-//  
-  sprintf(LogBuff,"Lora_Target_ID = %d \r\n",Forward.Target_Lora_ID);
-  Logging(LogBuff);
-  
+  HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
-  HAL_TIM_Base_Start_IT(&htim3);  
-//  
-//RTC_TimeTypeDef GetTime; 
-//RTC_DateTypeDef GetData;  //获取日期结构体
+  
+  HAL_TIM_Base_Start_IT(&htim3); 
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -172,11 +141,9 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-//    HAL_RTC_GetTime(&hrtc, &GetTime, RTC_FORMAT_BIN);
-//    HAL_RTC_GetDate(&hrtc, &GetData, RTC_FORMAT_BIN);
-//    printf("%02d/%02d/%02d\r\n", 2000+GetData.Year, GetData.Month, GetData.Date);
-//    printf("%02d:%02d:%02d\r\n",GetTime.Hours, GetTime.Minutes, GetTime.Seconds);
+
     UserLoop();
+    
     HAL_Delay(5);//不能低于5ms
 //    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
 //    
@@ -209,6 +176,7 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
+
   /** Initializes the CPU, AHB and APB buses clocks
   */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
@@ -275,5 +243,3 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
