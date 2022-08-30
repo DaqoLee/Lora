@@ -111,22 +111,23 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
-//  MX_IWDG_Init();
+ // MX_IWDG_Init();
   MX_SPI1_Init();
   MX_FATFS_Init();
   MX_RTC_Init();
   /* USER CODE BEGIN 2 */
   __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC); //开启秒中断
-  sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
-#if SD_CARD_LOG  
-  SDCardLogInit();
-#endif    
+
   HAL_Delay(500);
+  
   Lora_Init();
   User_Init();
   FTU_Init();
   
-  
+// #if SD_CARD_LOG  
+//  SDCardLogInit();
+//#endif  
+
   HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
@@ -144,7 +145,7 @@ int main(void)
 
     UserLoop();
     
-    HAL_Delay(5);//不能低于5ms
+//    HAL_Delay(5);//不能低于5ms
 //    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
 //    
   }

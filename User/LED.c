@@ -9,7 +9,7 @@ void LEDStatus(uint16_t frequency)
 //  static uint16_t sdTemp=0;
   static uint16_t ledrToggle=0; 
 //  static uint8_t ledbToggle=0; 
-  
+
   if(Lora.ID == 0)
   {
     if( loraIDTemp++ >5)
@@ -20,7 +20,7 @@ void LEDStatus(uint16_t frequency)
   }
   else 
   {
-    if(ledrToggle < Lora.ID && Lora.KeyIDStatus == 0)
+    if(ledrToggle < Lora.ID && Lora.KeyIDStatus == KEY_SET_ID_END)
     {
        loraIDTemp++;
       if(loraIDTemp < frequency/4)
@@ -39,7 +39,7 @@ void LEDStatus(uint16_t frequency)
         ledrToggle++;   
       }
     }
-     else if((ledrToggle - Lora.ID) < Lora.TargetID && Lora.KeyIDStatus == 0)
+     else if((ledrToggle - Lora.ID) < Lora.TargetID && Lora.KeyIDStatus == KEY_SET_ID_END)
     {
        loraIDTemp++;
       if(loraIDTemp < frequency/4)
@@ -60,7 +60,7 @@ void LEDStatus(uint16_t frequency)
     }   
     else
     {
-      if(Lora.KeyIDStatus == 0)
+      if(Lora.KeyIDStatus == KEY_SET_ID_END)
       {
         loraIDTemp = 0;
         ledrToggle = 0;  

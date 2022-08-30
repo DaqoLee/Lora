@@ -36,12 +36,25 @@ extern RTC_HandleTypeDef hrtc;
 
 /* USER CODE BEGIN Private defines */
 
+
+//typedef struct 
+//{
+//	vu8 hour;
+//	vu8 min;
+//	vu8 sec;			
+//	//公历日月年周
+//	vu16 w_year;
+//	vu8  w_month;
+//	vu8  w_date;
+//	vu8  week;	
+//}_calendar_obj;					 
+//extern _calendar_obj calendar;	
 /* USER CODE END Private defines */
 
 void MX_RTC_Init(void);
 
 /* USER CODE BEGIN Prototypes */
-
+  
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

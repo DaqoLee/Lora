@@ -7,8 +7,8 @@
 #include "fatfs.h"
 #include "usart.h"
 
-#define USER_RX_MAX_SIZE 500
-#define USER_TX_MAX_SIZE 500
+#define USER_RX_MAX_SIZE 1000
+#define USER_TX_MAX_SIZE 1000
 
 #define USART3_RX_MAX_SIZE 500
 #define USART2_RX_MAX_SIZE 500
@@ -22,6 +22,13 @@
 //#define Source node
 
 /* ¿©’π±‰¡ø ------------------------------------------------------------------*/
+
+typedef enum {
+	S_OK = 0,				/* (0) Succeeded */
+ // READ_ID_ERR = 1,
+  
+
+} UserStatus_t;
 
 typedef struct
 {
@@ -38,6 +45,8 @@ typedef struct
 
   uint8_t RxEndFlag;  
   uint8_t ReadIDFlag;
+  UserStatus_t ErrCode;
+  
   
 }User_t;
 
@@ -85,19 +94,11 @@ typedef struct
 
 typedef struct
 {
-  uint8_t Second;
-  uint8_t Minute;
-  uint8_t Hour;
-  
-  uint8_t Day;
-  uint8_t Month;
-  uint16_t Year;
-  
   char Buff[30];
 }DateTime_t;
 
-extern RTC_TimeTypeDef GetTime; 
-extern RTC_DateTypeDef GetData;  
+extern RTC_TimeTypeDef Time; 
+extern RTC_DateTypeDef Date;  
 extern User_t User;     
 //extern Forward_t Forward;
 extern DateTime_t DateTime;
@@ -110,10 +111,6 @@ void User_Transmit(UART_HandleTypeDef *huart, uint8_t *SendBuf, uint16_t SendLen
 //HAL_StatusTypeDef Read_Lora_ID(void);
 
 
-//void USAR3_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size);
-//void USAR2_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size);
-//void USART3_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
-//void USART2_Rx_Analysis(uint8_t *Rx_Buff, uint16_t Rx_Size);
 void UserLoop(void);
 //void HexToStr(uint8_t *hex, uint16_t n, char *str);
 //uint8_t SDCardLogInit(void);

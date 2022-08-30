@@ -6,7 +6,21 @@
 #include "Lora.h"
 
 UART_HandleTypeDef *FTU_UartHander = &huart3;
-FTU_t FTU;
+
+FTU_t FTU={
+            .RxLEDStatus = 0,
+            .TxLEDStatus = 0,
+
+            .TxBuff = {'0'},
+            .RxBuff =  {'0'},
+
+            .RxSize = 0,
+            .TxSize = 0,
+            .RxCount = 0,
+            .ReadIDFlag = 0,
+};
+
+
 
 void FTU_CopyToLora(uint8_t *Rx_Buff, uint16_t Rx_Size);
 
@@ -55,6 +69,7 @@ void FTU_CopyToLora(uint8_t *Rx_Buff, uint16_t Rx_Size)
   Lora.TxSize = Rx_Size;
   memcpy(Lora.TxBuff, Rx_Buff, Rx_Size);
   FTU.RxEndFlag = 1;
+  FTU.RxCount++;
   HAL_UART_Receive_DMA(FTU_UartHander,FTU.RxBuff,FTU_RX_MAX_SIZE);
 }
 

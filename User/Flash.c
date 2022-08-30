@@ -36,7 +36,7 @@ void Flash_Write(u32 *pBuffer,u32  NumToWrite)
     HAL_FLASH_Unlock();	    //解锁
     Flash_Erase( );         //先擦除
                             //再写入
-     printf(" 擦除完成，准备写入......\r\n");
+ //    printf(" 擦除完成，准备写入......\r\n");
      while ( (Address < FLASH_USER_END_ADDR) && (i<NumToWrite)  )    
     {
       if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Address, pBuffer[i]) == HAL_OK)
@@ -46,8 +46,8 @@ void Flash_Write(u32 *pBuffer,u32  NumToWrite)
       }
       else
       {  
-        printf(" Error...2\r\n"); 
-        Error_Handler( );            
+  //      printf(" Error...2\r\n"); 
+   //     Error_Handler( );            
       }
     }
   

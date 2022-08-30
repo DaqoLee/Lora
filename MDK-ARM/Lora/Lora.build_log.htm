@@ -22,16 +22,25 @@ Dialog DLL:      TCM.DLL V1.42.0.0
  
 <h2>Project:</h2>
 C:\Users\DaqoLee\Desktop\Lora\Lora\MDK-ARM\Lora.uvprojx
-Project File Date:  08/24/2022
+Project File Date:  08/26/2022
 
 <h2>Output:</h2>
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'Lora'
+compiling stm32f1xx_it.c...
 compiling main.c...
+compiling FTU.c...
+compiling User.c...
+..\User\User.c(70): warning:  #177-D: variable "head"  was declared but never referenced
+    static uint8_t head[]={0x33, 0x33, 0x33};
+..\User\User.c(96): warning:  #177-D: variable "head"  was declared but never referenced
+    static uint8_t head[]={0x22, 0x22, 0x22};
+..\User\User.c: 2 warnings, 0 errors
+compiling Lora.c...
 linking...
-Program Size: Code=24316 RO-data=1696 RW-data=1332 ZI-data=14780  
+Program Size: Code=17272 RO-data=292 RW-data=4188 ZI-data=13636  
 FromELF: creating hex file...
-"Lora\Lora.axf" - 0 Error(s), 0 Warning(s).
+"Lora\Lora.axf" - 0 Error(s), 2 Warning(s).
 
 <h2>Software Packages used:</h2>
 
@@ -54,7 +63,7 @@ Package Vendor: Keil
 <h2>Collection of Component Files used:</h2>
 
    * Component: ARM::CMSIS:CORE:5.6.0
-Build Time Elapsed:  00:00:03
+Build Time Elapsed:  00:00:02
 </pre>
 </body>
 </html>

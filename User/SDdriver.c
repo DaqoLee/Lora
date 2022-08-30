@@ -14,10 +14,11 @@ MSD_CARDINFO SD0_CardInfo;
 
 
 FIL File;
-char SD_FileName[] = "2022-08-19_11-31-27";
+char SD_FileName[] = "LOG001.txt";
 char WriteBuffer[2000]={'0'};
 char LogBuff[100]={'0'};
 FATFS FS;
+FATFS *fs;
 UINT Bw;	
 uint8_t SD_Status = 0 ;
 //////////////////////////////////////////////////////////////
@@ -476,8 +477,14 @@ void SPI_setspeed(uint8_t speed){
 uint8_t SDCardLogInit(void)
 {
   uint8_t res=0;
-
-
+  DWORD fre_clust =0;
+  DWORD AvailableSize = 0;
+  DWORD UsedSize = 0;  
+  uint16_t TotalSpace = 0;
+	FRESULT result;
+  char writeBuff[50]="0";
+  
+  
   if(SD_init() == FR_OK)
   {
     SD_Status = 1;
@@ -488,8 +495,8 @@ uint8_t SDCardLogInit(void)
     SD_Status = 0;
     printf("初始化失败！ \r\n");
   }	
-	
-  if(f_mount(&FS,"0:",1) == FR_OK)
+	res=f_mount(&FS,"0:",1);
+  if(res == FR_OK)
   {
     SD_Status = 1;
     printf("文件挂载成功！ \r\n");			
@@ -497,21 +504,39 @@ uint8_t SDCardLogInit(void)
   else
   {
     SD_Status = 0;
-    printf("文件挂载失败！ \r\n");
+    printf("文件挂载失败！%d \r\n",res);
   }	
-  sprintf(SD_FileName,"%02d-%02d-%02d_%02d-%02d-%02d.txt",2000+GetData.Year, GetData.Month, GetData.Date, GetTime.Hours, GetTime.Minutes, GetTime.Seconds); 
-  if(f_open(&File,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE) == FR_OK)//创建文件 
+  
+//  	res = f_getfree("0:", &fre_clust, &fs);  /* 根目录 */
+//	if ( res == FR_OK ) 
+//	{
+//		TotalSpace=(uint16_t)(((fs->n_fatent - 2) * fs->csize ) / 2 /1024);
+//		AvailableSize=(uint16_t)((fre_clust * fs->csize) / 2 /1024);
+//		UsedSize=TotalSpace-AvailableSize;              
+//		/* Print free space in unit of MB (assuming 512 bytes/sector) */
+//		printf("\r\n%d MB total drive space.\r\n""%d MB available.\r\n""%d MB  used.\r\n",TotalSpace, (int)AvailableSize,(int)UsedSize);
+//	}
+//	else 
+//	{
+//		printf("Get SDCard Capacity Failed (%d)\r\n", result);
+//	}		  
+  
+  sprintf(SD_FileName,"%02d-%02d-%02d_%02d-%02d-%02d.txt",2000+Date.Year, Date.Month, Date.Date, Time.Hours, Time.Minutes, Time.Seconds); 
+  res=f_open(&File,SD_FileName,FA_OPEN_ALWAYS |FA_WRITE);
+  if( res== FR_OK)//创建文件 
   {
     printf("文件创建成功！ \r\n");	
     SD_Status = 1;		
   }
   else
   {
-    printf("文件创建失败！ \r\n");
+    printf("文件创建失败！%d \r\n",res);
     SD_Status = 0;
   }		
   f_lseek(&File, f_size(&File));
-  res = f_write(&File,DateTime.Buff,sizeof(DateTime.Buff),&Bw);
+  sprintf(DateTime.Buff,"%02d/%02d/%02d-%02d:%02d:%02d",2000+Date.Year, Date.Month, Date.Date, Time.Hours, Time.Minutes, Time.Seconds); 
+  sprintf(writeBuff,"%s: available %d MB\r\n",DateTime.Buff,(int)AvailableSize); 
+  res = f_write(&File,writeBuff,sizeof(writeBuff),&Bw);
   if(res == FR_OK)
   {
     printf("文件写入成功！ \r\n");	
@@ -519,9 +544,11 @@ uint8_t SDCardLogInit(void)
   }
   else
   {
-    printf("文件写入失败！ \r\n");
+    printf("文件写入失败！%d \r\n",res);
     SD_Status = 0;
   }		
+  
+//  f_close(&File);
   f_sync(&File);
   return res;
 }
@@ -530,7 +557,7 @@ void SD_Write(const void *buff)
 {
   	uint8_t res=0;
     UINT Bw;	
-
+//    static uint32_t tick = 0;
 //    if(f_open(&File, SD_FileName, FA_OPEN_ALWAYS|FA_WRITE) == FR_OK)
 //    {
 //      printf("文件打开成功！ \r\n");			
@@ -539,7 +566,11 @@ void SD_Write(const void *buff)
 //    {
 //      printf("文件打开失败！ \r\n");
 //    }
+ //   tick = HAL_GetTick();
     f_lseek(&File, f_size(&File));
+ //   printf("f_lseek %d\r\n",HAL_GetTick()-tick);
+  
+//    tick = HAL_GetTick();
     if(f_write(&File,buff,strlen(buff),&Bw) == FR_OK)
     {
      // printf("文件写入成功！ \r\n");
@@ -549,9 +580,14 @@ void SD_Write(const void *buff)
     {
       // printf("文件写入失败！ \r\n");
       SD_Status = 0;
-    }		
+    }	
+//    printf("f_write %d\r\n",HAL_GetTick()-tick);
+  //  f_close(&File);    
+//    tick = HAL_GetTick();
+    
+//    f_close(&File);
     f_sync(&File);
-  
+//    printf("f_sync %d\r\n",HAL_GetTick()-tick);
     res= res;
 }
 

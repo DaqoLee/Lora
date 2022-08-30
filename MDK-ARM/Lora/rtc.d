@@ -33,3 +33,5 @@ lora\rtc.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 lora\rtc.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 lora\rtc.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 lora\rtc.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
+lora\rtc.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+lora\rtc.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

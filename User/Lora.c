@@ -1,5 +1,4 @@
 #include "Lora.h"
-#include "User.h"
 #include <math.h>
 #include "stdio.h"
 #include "string.h"
@@ -14,20 +13,27 @@ UART_HandleTypeDef *Lora_UartHander = &huart2;
 Lora_t Lora = {.ID = 0,
                .LastID = 0,
                .TargetID = 1,
-
-               .KeyIDStatus = 0,
-                
+  
+               .ReadIDStatus = LORA_OK ,               
+               .LogStatus = LORA_OK,
+  
+               .ReplyCode = 0,
+  
+               .KeyIDStatus = KEY_SET_ID_END,
+               .ReplyStatus = REPLY_RST,
+  
                .RxLEDStatus = 0,
                .TxLEDStatus = 0,
 
                .TxBuff = {0},
                .RxBuff= {0},
                 
-               . RxSize = 0,
-               . TxSize = 0,
-                
+               .RxSize = 0,
+               .TxSize = 0,
+               .RxCount = 0,
+               
                .RxEndFlag = 0, 
-               .ReadIDFlag = 0            
+                         
 };
 
 uint8_t Lora_Check(uint8_t *data , uint16_t n);
@@ -44,22 +50,22 @@ int Lora_IRQHandler(void)
     HAL_UART_DMAStop(Lora_UartHander);
     
     Lora.RxSize = LORA_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(Lora_UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
-    if(User.RxEndFlag == 1)
+//    if(User.RxEndFlag == 1)
     {
       User.RxEndFlag = 0;
-      HAL_UART_Transmit(User_UartHander,Lora.RxBuff,Lora.RxSize,500);  
+  //    HAL_UART_Transmit(User_UartHander,Lora.RxBuff,Lora.RxSize,500);  
      //  HAL_UART_Transmit_DMA(&huart1, Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size);
     //   HAL_UART_Receive_DMA(Lora_UartHander,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
       
     } 
-    else
+   // else
     {
   //    HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
   //    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
   //  
     }
-    
-
+   // HAL_UART_Transmit(User_UartHander,Lora.RxBuff,Lora.RxSize,500); 
+//  HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
     Lora_CopyToFTU(Lora.RxBuff, Lora.RxSize);
   }
     
@@ -89,9 +95,10 @@ void Lora_Init(void)
 }
 
 
-void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size ,uint16_t ID)
+void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size, uint16_t ID, uint16_t timeOut)
 {
   uint8_t Tx_Data[Tx_Size + 11];
+  uint16_t LasttimeOut = timeOut;
   
   Tx_Data[0] = 0x05;
   Tx_Data[1] = 0x00;
@@ -106,7 +113,14 @@ void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size ,uint16_t ID)
   memcpy(&Tx_Data[10], Tx_Buff, Tx_Size);
   
   Tx_Data[Tx_Size + 10] = Lora_Check(Tx_Data, Tx_Size + 10);
-  HAL_UART_Transmit(Lora_UartHander,Tx_Data ,Tx_Size+11 ,1000);
+  
+  HAL_UART_Transmit(Lora_UartHander,Tx_Data ,Tx_Size+11 ,2000);
+  
+  while( Lora.ReplyStatus != REPLY_OK && timeOut--)
+  {
+    HAL_Delay(1);
+  }
+  printf("timeOut: %d \r\n",LasttimeOut - timeOut );
 //  HAL_UART_Transmit_DMA(Lora_UartHander,Tx_Data ,Tx_Size+11);
 }
 
@@ -114,33 +128,63 @@ void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size ,uint16_t ID)
 void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   uint8_t temp = 0;
+  static uint16_t count = 5;
   static uint8_t head[] = {0xAA, 0xAA, 0xAA};
   static uint8_t tail[] = {0xEE, 0xEE, 0xEE};
  
   if(Tx_Size >LORA_TX_MAX_SIZE)
   {
-     Lora_Pack(head ,sizeof(head) ,Lora.TargetID); 
-     HAL_Delay(500);
+     do
+     {
+        Lora_Pack(head, sizeof(head), Lora.TargetID, 1000);         
+       
+     }while( Lora.ReplyStatus != REPLY_OK && count--);        
+     Lora.ReplyStatus = REPLY_RST;
+     count = 5;
+
      while(Tx_Size / LORA_TX_MAX_SIZE)
      {
-       Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,LORA_TX_MAX_SIZE ,Lora.TargetID);       
-            
-       HAL_Delay(1000);
+       do
+       {
+          Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,LORA_TX_MAX_SIZE ,Lora.TargetID, 1000); 
+              
+       }while( Lora.ReplyStatus != REPLY_OK && count--);
+          
+        Lora.ReplyStatus = REPLY_RST;
+        count = 5;
      //  memset(Tx_Buff[temp],0,LORA_TX_MAX_SIZE);
        Tx_Size -= LORA_TX_MAX_SIZE; 
        temp++;
      }
-
-     Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,Tx_Size ,Lora.TargetID);
-     HAL_Delay(1000);
-     Lora_Pack(tail ,sizeof(tail) ,Lora.TargetID);
-     HAL_Delay(500);
+    
+    do
+     {
+        Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,Tx_Size ,Lora.TargetID, 1000);
+             
+     }while( Lora.ReplyStatus != REPLY_OK && count--);
+     Lora.ReplyStatus = REPLY_RST;
+     count = 5;
+     
+     do
+     {
+        Lora_Pack(tail ,sizeof(tail) ,Lora.TargetID, 1000);    
+       
+     }while( Lora.ReplyStatus != REPLY_OK && count--);
+     Lora.ReplyStatus = REPLY_RST;
+     count = 5;
+     
      temp = 0;
   }
   else
   {
-     Lora_Pack(Tx_Buff ,Tx_Size ,Lora.TargetID);
-     HAL_Delay(500);
+     do
+     {
+        Lora_Pack(Tx_Buff ,Tx_Size ,Lora.TargetID, 1000);
+                
+     }while( Lora.ReplyStatus != REPLY_OK && count--);
+     Lora.ReplyStatus = REPLY_RST;
+     count = 5;
+
   }
  
 }
@@ -163,12 +207,14 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
     {
       status = 0;      
       Lora.RxEndFlag = 1;
+      Lora.RxCount++;
     }
     else if (status == 0)
     {
       FTU.TxSize = Rx_Buff[7];
       memcpy(FTU.TxBuff, &Rx_Buff[8], FTU.TxSize);
       Lora.RxEndFlag = 1;
+      Lora.RxCount++;
     }
     else if (status == 1)
     { 
@@ -182,20 +228,31 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
       }
     } 
   }
-  else if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82)
+  else if(Rx_Buff[0] == 0x05 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x81 && Rx_Buff[Rx_Size-1] == Lora_Check(Rx_Buff,Rx_Size-1))
   {
-     if(Rx_Buff[Rx_Size-1] == Lora_Check(Rx_Buff,Rx_Size-1))
-     {
-        Lora.ID = Rx_Buff[Rx_Size - 5] | Rx_Buff[Rx_Size - 4];
-       
-     }
+      Lora.ReplyCode = Rx_Buff[Rx_Size - 2];
+      if(Lora.ReplyCode != 0)
+      {
+        Lora.LogStatus = LOG_START;
+        Lora.ReplyStatus = REPLY_RST;
+      }
+      else
+      {
+        Lora.ReplyStatus = REPLY_OK;
+      }
+    
+  }  
+  else if(Rx_Buff[0] == 0x01 && Rx_Buff[1] == 0x00 && Rx_Buff[2] == 0x82 && Rx_Buff[Rx_Size-1] == Lora_Check(Rx_Buff,Rx_Size-1))
+  {
+      Lora.ID = Rx_Buff[Rx_Size - 4] | Rx_Buff[Rx_Size - 5] << 8;
+      Lora.ReadIDStatus = READ_ID_END;
   }  
 
   HAL_UART_Receive_DMA(Lora_UartHander, Lora.RxBuff, LORA_RX_MAX_SIZE);    
 }
 
 
-HAL_StatusTypeDef Lora_ReadID(void)
+LoraStatus_t Lora_ReadID(void)
 {
   uint16_t temp = 10;
   static uint8_t ReadConfigBuff[18]={0x01, 0x00, 0x02, 0x0D, 0xA5, 0xA5, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0E };
@@ -206,16 +263,17 @@ HAL_StatusTypeDef Lora_ReadID(void)
     HAL_UART_Transmit(Lora_UartHander,ReadConfigBuff, sizeof(ReadConfigBuff),500);
 //    HAL_UART_Transmit_DMA(Lora_UartHander, ReadConfigBuff, sizeof(ReadConfigBuff));
     HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
-  }while(Lora.ID == Lora.LastID && temp--);
+    //HAL_Delay(300);
+  }while(Lora.ReadIDStatus != READ_ID_END && temp--);
   
-   Lora.LastID = Lora.ID;
-  if(temp <= 0)
+  Lora.LastID = Lora.ID;
+  if(temp <= 0 && Lora.ID ==0)
   {
-    return HAL_TIMEOUT;
+    return READ_ID_ERR;
   }
   else
   {
-    return HAL_OK;
+    return LORA_OK;
   } 
 }
 
@@ -272,28 +330,31 @@ void Lora_SetIDWithKey(void)
    static uint8_t loraId = 0;
    static uint8_t tarLoraId = 0;
    static uint16_t timer=0;
+   static uint8_t keyIDTemp = 0;
   
    Key_Process();
   
   if(userKeyList[KEY_1].longPressedJump)
   {
-    if(  Lora.KeyIDStatus ++ > 2)
+    if(  keyIDTemp ++ > 2)
     {
-      Lora.KeyIDStatus = 1;
+      keyIDTemp = 1;      
     }
+    
+    Lora.KeyIDStatus = KEY_SET_ID_START;
   
   }
   
-  switch(Lora.KeyIDStatus)
+  switch(keyIDTemp)
   {
     case 0:
       loraId = 0;
       tarLoraId = 0;
-
+      Lora.KeyIDStatus = KEY_SET_ID_END;
     break;
     
     case 1:
-      
+     
       if(userKeyList[KEY_1].keyPressedJump)
       {       
         loraId++;
@@ -316,11 +377,11 @@ void Lora_SetIDWithKey(void)
           if(loraId > 0)
           {
             Lora_WriteID(loraId);
-            Lora.ReadIDFlag = 1;
+            Lora.ReadIDStatus = READ_ID_START;
             //Read_Lora_ID();
             //Forward.Lora_ID = loraId;
           }
-           Lora.KeyIDStatus = 0;
+           keyIDTemp = 0;
           timer = 0;
           HAL_GPIO_WritePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin, GPIO_PIN_RESET);
         }
@@ -353,7 +414,7 @@ void Lora_SetIDWithKey(void)
             Lora.TargetID = tarLoraId;
             Lora_WriteTargetIDToFlash(Lora.TargetID);
           }
-           Lora.KeyIDStatus = 0;
+           keyIDTemp = 0;
           timer = 0;
           HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
         }
