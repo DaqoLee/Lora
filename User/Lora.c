@@ -8,8 +8,6 @@
 #include "Flash.h"
 
 
-UART_HandleTypeDef *Lora_UartHander = &huart2;
-
 Lora_t Lora = {.ID = 0,
                .LastID = 0,
                .TargetID = 1,
@@ -33,7 +31,8 @@ Lora_t Lora = {.ID = 0,
                .RxCount = 0,
                
                .RxEndFlag = 0, 
-                         
+               
+               .UartHander = &huart2,       
 };
 
 uint8_t Lora_Check(uint8_t *data , uint16_t n);
@@ -42,30 +41,20 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size);
 
 int Lora_IRQHandler(void)
 {
-  if(NULL == Lora_UartHander)
+  
+  if(NULL == Lora.UartHander)
     return -1;
-	if (__HAL_UART_GET_FLAG(Lora_UartHander, UART_FLAG_IDLE) == SET)
+	if (__HAL_UART_GET_FLAG(Lora.UartHander, UART_FLAG_IDLE) == SET)
   {
-    __HAL_UART_CLEAR_IDLEFLAG(Lora_UartHander);//清除标志位
-    HAL_UART_DMAStop(Lora_UartHander);
+    __HAL_UART_CLEAR_IDLEFLAG(Lora.UartHander);//清除标志位
+    HAL_UART_DMAStop(Lora.UartHander);
     
-    Lora.RxSize = LORA_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(Lora_UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
-//    if(User.RxEndFlag == 1)
-    {
-      User.RxEndFlag = 0;
-  //    HAL_UART_Transmit(User_UartHander,Lora.RxBuff,Lora.RxSize,500);  
-     //  HAL_UART_Transmit_DMA(&huart1, Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size);
-    //   HAL_UART_Receive_DMA(Lora_UartHander,Forward.USART2_Rx_Buff,USART2_RX_MAX_SIZE);
-      
-    } 
-   // else
-    {
-  //    HAL_UART_Transmit(&huart1,Forward.Head,sizeof(Forward.Head),500);
-  //    HAL_UART_Transmit(&huart1,Forward.USART2_Rx_Buff,Forward.USART2_Rx_Buff_Size,500);
-  //  
-    }
-   // HAL_UART_Transmit(User_UartHander,Lora.RxBuff,Lora.RxSize,500); 
-//  HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+    Lora.RxSize = LORA_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(Lora.UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
+
+#if UPEER_PC_800MN
+    HAL_UART_Transmit(User.UartHander,Lora.RxBuff,Lora.RxSize,500); 
+#endif
+//  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
     Lora_CopyToFTU(Lora.RxBuff, Lora.RxSize);
   }
     
@@ -76,9 +65,9 @@ int Lora_IRQHandler(void)
 void Lora_Init(void)
 {
 
-  __HAL_UART_CLEAR_IDLEFLAG(Lora_UartHander);//清除标志位
-	__HAL_UART_ENABLE_IT(Lora_UartHander,UART_IT_IDLE );   
-  HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+  __HAL_UART_CLEAR_IDLEFLAG(Lora.UartHander);//清除标志位
+	__HAL_UART_ENABLE_IT(Lora.UartHander,UART_IT_IDLE );   
+  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
   
   HAL_Delay(200);
   Lora_ReadID();
@@ -98,7 +87,7 @@ void Lora_Init(void)
 void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size, uint16_t ID, uint16_t timeOut)
 {
   uint8_t Tx_Data[Tx_Size + 11];
-  uint16_t LasttimeOut = timeOut;
+//  uint16_t LasttimeOut = timeOut;
   
   Tx_Data[0] = 0x05;
   Tx_Data[1] = 0x00;
@@ -114,14 +103,14 @@ void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size, uint16_t ID, uint16_t timeOut
   
   Tx_Data[Tx_Size + 10] = Lora_Check(Tx_Data, Tx_Size + 10);
   
-  HAL_UART_Transmit(Lora_UartHander,Tx_Data ,Tx_Size+11 ,2000);
+  HAL_UART_Transmit(Lora.UartHander,Tx_Data ,Tx_Size+11 ,2000);
   
   while( Lora.ReplyStatus != REPLY_OK && timeOut--)
   {
     HAL_Delay(1);
   }
-  printf("timeOut: %d \r\n",LasttimeOut - timeOut );
-//  HAL_UART_Transmit_DMA(Lora_UartHander,Tx_Data ,Tx_Size+11);
+ // printf("timeOut: %d \r\n",LasttimeOut - timeOut );
+//  HAL_UART_Transmit_DMA(Lora.UartHander,Tx_Data ,Tx_Size+11);
 }
 
 
@@ -248,7 +237,7 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
       Lora.ReadIDStatus = READ_ID_END;
   }  
 
-  HAL_UART_Receive_DMA(Lora_UartHander, Lora.RxBuff, LORA_RX_MAX_SIZE);    
+  HAL_UART_Receive_DMA(Lora.UartHander, Lora.RxBuff, LORA_RX_MAX_SIZE);    
 }
 
 
@@ -260,9 +249,9 @@ LoraStatus_t Lora_ReadID(void)
   {
   //  Logging("Read_Lora_ID\r\n");
     HAL_Delay(500);
-    HAL_UART_Transmit(Lora_UartHander,ReadConfigBuff, sizeof(ReadConfigBuff),500);
-//    HAL_UART_Transmit_DMA(Lora_UartHander, ReadConfigBuff, sizeof(ReadConfigBuff));
-    HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+    HAL_UART_Transmit(Lora.UartHander,ReadConfigBuff, sizeof(ReadConfigBuff),500);
+//    HAL_UART_Transmit_DMA(Lora.UartHander, ReadConfigBuff, sizeof(ReadConfigBuff));
+    HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
     //HAL_Delay(300);
   }while(Lora.ReadIDStatus != READ_ID_END && temp--);
   
@@ -301,7 +290,7 @@ void Lora_WriteID(uint16_t ID)
   Tx_Data[16] = 0x00;
   Tx_Data[17] = Lora_Check(Tx_Data,17);
   
-  HAL_UART_Transmit(Lora_UartHander,Tx_Data ,18 ,1000);
+  HAL_UART_Transmit(Lora.UartHander,Tx_Data ,18 ,1000);
 }
 
 

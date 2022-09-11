@@ -5,7 +5,6 @@
 #include "string.h"
 #include "Lora.h"
 
-UART_HandleTypeDef *FTU_UartHander = &huart3;
 
 FTU_t FTU={
             .RxLEDStatus = 0,
@@ -18,6 +17,7 @@ FTU_t FTU={
             .TxSize = 0,
             .RxCount = 0,
             .ReadIDFlag = 0,
+            .UartHander = &huart3,
 };
 
 
@@ -27,24 +27,61 @@ void FTU_CopyToLora(uint8_t *Rx_Buff, uint16_t Rx_Size);
 
 void FTU_Init(void)
 {
-  __HAL_UART_CLEAR_IDLEFLAG(FTU_UartHander);//清除标志位
-	__HAL_UART_ENABLE_IT(FTU_UartHander, UART_IT_IDLE );   
-  HAL_UART_Receive_DMA(FTU_UartHander, FTU.RxBuff, FTU_RX_MAX_SIZE);
+  
+  FTU.pFTU_RXBuff_In = FTU.FTU_RXBuff_Pointer;
+  FTU.pFTU_RXBuff_Out = FTU.pFTU_RXBuff_In;
+  FTU.pFTU_RXBuff_End = &FTU.FTU_RXBuff_Pointer[FTU_RX_PT_NUM - 1];
+  FTU.pFTU_RXBuff_In ->pStart = FTU.RxBuff;
+  
+  FTU.RxDataCount = 0;
+  
+  
+  
+  __HAL_UART_CLEAR_IDLEFLAG(FTU.UartHander);//清除标志位
+	__HAL_UART_ENABLE_IT(FTU.UartHander, UART_IT_IDLE );   
+  
+  
+
+//  HAL_UART_Receive_DMA(FTU.UartHander, FTU.RxBuff, FTU_RX_MAX_SIZE);
+ 
+  HAL_UART_Receive_DMA(FTU.UartHander, FTU.pFTU_RXBuff_In ->pStart, FTU_RX_MAX_SIZE);  
   
 }
 
 int FTU_IRQHandler(void)
 {
-  if(NULL == FTU_UartHander)
+  if(NULL == FTU.UartHander)
     return -1;
-	if (__HAL_UART_GET_FLAG(FTU_UartHander, UART_FLAG_IDLE) == SET)
+	if (__HAL_UART_GET_FLAG(FTU.UartHander, UART_FLAG_IDLE) == SET)
   {
-    __HAL_UART_CLEAR_IDLEFLAG(FTU_UartHander);//清除标志位
-    HAL_UART_DMAStop(FTU_UartHander);
+    __HAL_UART_CLEAR_IDLEFLAG(FTU.UartHander);//清除标志位
+    HAL_UART_DMAStop(FTU.UartHander);
     
-    FTU.RxSize = FTU_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(FTU_UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
+    FTU.RxSize = FTU_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(FTU.UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
     
-    FTU_CopyToLora(FTU.RxBuff, FTU.RxSize);
+    FTU.RxDataCount += FTU.RxSize;
+    
+    FTU.pFTU_RXBuff_In->pEnd = &FTU.RxBuff[FTU.RxDataCount];
+    FTU.pFTU_RXBuff_In++;
+    
+    if( FTU.pFTU_RXBuff_In == FTU.pFTU_RXBuff_End)
+    {
+      FTU.pFTU_RXBuff_In = &FTU.FTU_RXBuff_Pointer[0];
+    }
+    
+    
+    if(FTU_RX_BUFF_MAX_SIZE - FTU.RxDataCount >= FTU_RX_MAX_SIZE)
+    {
+      FTU.pFTU_RXBuff_In->pStart = &FTU.RxBuff[FTU.RxDataCount];
+    }
+    else
+    {
+      FTU.RxDataCount = 0;
+      FTU.pFTU_RXBuff_In ->pStart = FTU.RxBuff;
+    }
+    
+    HAL_UART_Receive_DMA(FTU.UartHander, FTU.pFTU_RXBuff_In ->pStart, FTU_RX_MAX_SIZE);
+  //  FTU_CopyToLora(FTU.RxBuff, FTU.RxSize);
   }
     
   
@@ -54,7 +91,7 @@ int FTU_IRQHandler(void)
 void FTU_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   
-  HAL_UART_Transmit(FTU_UartHander,Tx_Buff ,Tx_Size ,2000);
+  HAL_UART_Transmit(FTU.UartHander,Tx_Buff ,Tx_Size ,2000);
 //  HAL_UART_Transmit_DMA(&huart3,Tx_Buff ,Tx_Size);
  //memset(Forward.USART3_Tx_Buff,0,Forward.USART3_Tx_Buff_Size);
  //Forward.USART3_Tx_Buff_Size = 0;
@@ -70,7 +107,7 @@ void FTU_CopyToLora(uint8_t *Rx_Buff, uint16_t Rx_Size)
   memcpy(Lora.TxBuff, Rx_Buff, Rx_Size);
   FTU.RxEndFlag = 1;
   FTU.RxCount++;
-  HAL_UART_Receive_DMA(FTU_UartHander,FTU.RxBuff,FTU_RX_MAX_SIZE);
+  HAL_UART_Receive_DMA(FTU.UartHander,FTU.RxBuff,FTU_RX_MAX_SIZE);
 }
 
 
