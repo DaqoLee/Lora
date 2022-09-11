@@ -7,14 +7,14 @@ lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Include/core_cm3.h
-lora\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+lora\stm32f1xx_it.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Include/cmsis_version.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 lora\stm32f1xx_it.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-lora\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+lora\stm32f1xx_it.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 lora\stm32f1xx_it.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
@@ -42,6 +42,6 @@ lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/ff_gen_drv.h
 lora\stm32f1xx_it.o: ../Middlewares/Third_Party/FatFs/src/diskio.h
 lora\stm32f1xx_it.o: ../Inc/user_diskio.h
 lora\stm32f1xx_it.o: ../Inc/usart.h
-lora\stm32f1xx_it.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+lora\stm32f1xx_it.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
 lora\stm32f1xx_it.o: ../User/Lora.h
 lora\stm32f1xx_it.o: ../User/FTU.h

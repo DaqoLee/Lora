@@ -8,14 +8,14 @@ lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
 lora\flash.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
 lora\flash.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
 lora\flash.o: ../Drivers/CMSIS/Include/core_cm3.h
-lora\flash.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+lora\flash.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 lora\flash.o: ../Drivers/CMSIS/Include/cmsis_version.h
 lora\flash.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 lora\flash.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 lora\flash.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-lora\flash.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+lora\flash.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
@@ -33,4 +33,4 @@ lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_spi.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_tim_ex.h
 lora\flash.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_uart.h
-lora\flash.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+lora\flash.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h

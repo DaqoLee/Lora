@@ -3,13 +3,13 @@
 #include "usart.h"
 #include "User.h"
 
-#define LORA_RX_MAX_SIZE 1000
+#define LORA_RX_MAX_SIZE 600
 
 #define LORA_TX_MAX_SIZE 100
 
 
 typedef enum {
-	LORA_OK = 0,				/* (0) Succeeded */
+	LORA_OK = 0,				
   LORA_ERROR = 1,
   
   READ_ID_START = 2,
@@ -53,12 +53,12 @@ typedef struct
   
   uint8_t RxEndFlag;  
 
+  UART_HandleTypeDef *UartHander;
   
 }Lora_t;
 
 
 
-extern UART_HandleTypeDef *Lora_UartHander;
 extern Lora_t Lora;
 int Lora_IRQHandler(void);
 void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size);

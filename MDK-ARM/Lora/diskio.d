@@ -12,14 +12,14 @@ lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_def.h
 lora\diskio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f1xx.h
 lora\diskio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/stm32f103xb.h
 lora\diskio.o: ../Drivers/CMSIS/Include/core_cm3.h
-lora\diskio.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
+lora\diskio.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
 lora\diskio.o: ../Drivers/CMSIS/Include/cmsis_version.h
 lora\diskio.o: ../Drivers/CMSIS/Include/cmsis_compiler.h
 lora\diskio.o: ../Drivers/CMSIS/Include/cmsis_armcc.h
 lora\diskio.o: ../Drivers/CMSIS/Device/ST/STM32F1xx/Include/system_stm32f1xx.h
 lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal.h
 lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/Legacy/stm32_hal_legacy.h
-lora\diskio.o: D:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
+lora\diskio.o: d:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
 lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_rcc_ex.h
 lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio.h
 lora\diskio.o: ../Drivers/STM32F1xx_HAL_Driver/Inc/stm32f1xx_hal_gpio_ex.h
