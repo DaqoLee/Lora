@@ -13,7 +13,9 @@
 
 #define DEBUG 0
 #define UPEER_PC_800MN 1
-#define SD_CARD_LOG 1 //1  开启TF卡 1
+
+#define SD_CARD_LOG 0 //1  开启TF卡 1
+
 //#define Source node
 
 /* 扩展变量 ------------------------------------------------------------------*/
@@ -38,7 +40,9 @@ typedef struct
   uint16_t RxSize; 
   uint16_t TxSize; 
 
-  uint8_t RxEndFlag;  
+  uint8_t RxEndFlag; 
+	uint8_t TxFlag; 
+	
   uint8_t ReadIDFlag;
   UserStatus_t ErrCode;
   

@@ -15,6 +15,8 @@ User_t User ={
                .TxBuff = {0},
                .RxBuff= {0},
                .UartHander = &huart1,
+							 .TxFlag = 0,
+
 };                      
                       
 RTC_TimeTypeDef Time; 
@@ -137,12 +139,44 @@ void LoraTransmitToFUT(void)
   }
 
 }
+
+void LoraTransmitToUser(void)
+{
+  static uint8_t head[]={0x22, 0x22, 0x22};
+  if( User.TxFlag == 1)
+  {
+//    sprintf(LogBuff,"%s:\t USART2 receive  %d byte \r\n",DateTime.Buff, Lora.RxSize);
+//    Logging(LogBuff);
+//    HAL_Delay(50);
+//    FTU_Transmit(FTU.TxBuff,FTU.TxSize);
+		
+		HAL_UART_Transmit(User.UartHander, User.TxBuff, User.TxSize, 1000);
+		
+		User.TxFlag =0;
+//    HAL_Delay(50);
+//#if DEBUG   
+//    HAL_UART_Transmit(User.UartHander, head,sizeof(head), 500);
+//    HAL_UART_Transmit(User.UartHander, FTU.TxBuff, FTU.TxSize, 500);
+//#endif    
+//    sprintf(LogBuff,"%s:\t USART3 transmit %d byte \r\n",DateTime.Buff, FTU.TxSize );
+//    Logging(LogBuff);
+//    Lora.RxEndFlag = 0;
+//    Lora.RxSize = 0;
+//    FTU.TxSize = 0;
+
+//    memset(Lora.RxBuff,0,LORA_RX_MAX_SIZE);
+//    HAL_UART_Receive_DMA(Lora_UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+  }
+
+}
+
 void UserLoop(void)
 {
 //  static uint8_t temp=0;
 //  static uint32_t tick = 0;
   
   FUTTransmitToLora();
+	LoraTransmitToUser();
   LoraTransmitToFUT();
   
 //  if( SD_Status == 0)

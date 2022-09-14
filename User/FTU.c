@@ -59,6 +59,9 @@ int FTU_IRQHandler(void)
     
     FTU.RxSize = FTU_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(FTU.UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
     
+		
+	//	HAL_UART_Transmit(User.UartHander,FTU.pFTU_RXBuff_In->pStart, FTU.RxSize,500);
+
     FTU.RxDataCount += FTU.RxSize;
     
     FTU.pFTU_RXBuff_In->pEnd = &FTU.RxBuff[FTU.RxDataCount];
@@ -80,6 +83,9 @@ int FTU_IRQHandler(void)
       FTU.pFTU_RXBuff_In ->pStart = FTU.RxBuff;
     }
     
+
+	//	HAL_UART_Transmit(User.UartHander,FTU.pFTU_RXBuff_In->pStart, FTU.RxSize,500);
+
     HAL_UART_Receive_DMA(FTU.UartHander, FTU.pFTU_RXBuff_In ->pStart, FTU_RX_MAX_SIZE);
   //  FTU_CopyToLora(FTU.RxBuff, FTU.RxSize);
   }

@@ -55,6 +55,16 @@ int Lora_IRQHandler(void)
     HAL_UART_Transmit(User.UartHander,Lora.RxBuff,Lora.RxSize,500); 
 #endif
 //  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+
+		
+		User.TxSize = Lora.RxSize;
+		
+		
+		memcpy(User.TxBuff, Lora.RxBuff, Lora.RxSize);
+ //   HAL_UART_Transmit(User.UartHander,Lora.RxBuff,Lora.RxSize,500); 
+//#endif
+//  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
+		User.TxFlag = 1;
     Lora_CopyToFTU(Lora.RxBuff, Lora.RxSize);
   }
     
@@ -104,7 +114,8 @@ void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size, uint16_t ID, uint16_t timeOut
   Tx_Data[Tx_Size + 10] = Lora_Check(Tx_Data, Tx_Size + 10);
   
   HAL_UART_Transmit(Lora.UartHander,Tx_Data ,Tx_Size+11 ,2000);
-  
+ // HAL_UART_Transmit(User.UartHander,Tx_Data ,Tx_Size+11,500);
+
   while( Lora.ReplyStatus != REPLY_OK && timeOut--)
   {
     HAL_Delay(1);
@@ -121,7 +132,7 @@ void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
   static uint8_t head[] = {0xAA, 0xAA, 0xAA};
   static uint8_t tail[] = {0xEE, 0xEE, 0xEE};
  
-  if(Tx_Size >LORA_TX_MAX_SIZE)
+  if(Tx_Size > LORA_TX_MAX_SIZE)
   {
      do
      {
@@ -133,6 +144,7 @@ void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 
      while(Tx_Size / LORA_TX_MAX_SIZE)
      {
+			// HAL_Delay(10);
        do
        {
           Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,LORA_TX_MAX_SIZE ,Lora.TargetID, 1000); 
@@ -146,6 +158,7 @@ void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
        temp++;
      }
     
+		// HAL_Delay(10);
     do
      {
         Lora_Pack(&Tx_Buff[temp * LORA_TX_MAX_SIZE] ,Tx_Size ,Lora.TargetID, 1000);
@@ -153,7 +166,7 @@ void Lora_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
      }while( Lora.ReplyStatus != REPLY_OK && count--);
      Lora.ReplyStatus = REPLY_RST;
      count = 5;
-     
+    // HAL_Delay(10);
      do
      {
         Lora_Pack(tail ,sizeof(tail) ,Lora.TargetID, 1000);    
@@ -202,12 +215,14 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
     {
       FTU.TxSize = Rx_Buff[7];
       memcpy(FTU.TxBuff, &Rx_Buff[8], FTU.TxSize);
+//			HAL_UART_Transmit(User.UartHander,&Rx_Buff[8], FTU.TxSize,500); 
       Lora.RxEndFlag = 1;
       Lora.RxCount++;
     }
     else if (status == 1)
     { 
       memcpy(&FTU.TxBuff[FTU.TxSize], &Rx_Buff[8], Rx_Buff[7]);
+//			HAL_UART_Transmit(User.UartHander,&Rx_Buff[8], Rx_Buff[7],500); 
       FTU.TxSize += Rx_Buff[7];
       temp++;
       if(temp > FTU_RX_MAX_SIZE/LORA_TX_MAX_SIZE + 1)
