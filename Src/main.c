@@ -111,7 +111,7 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
- // MX_IWDG_Init();
+  MX_IWDG_Init();
   MX_SPI1_Init();
   MX_FATFS_Init();
   MX_RTC_Init();
@@ -145,8 +145,8 @@ int main(void)
 
     UserLoop();
     
-//    HAL_Delay(5);//不能低于5ms
-//    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
+    HAL_Delay(5);//不能低于5ms
+    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
 //    
   }
   /* USER CODE END 3 */
