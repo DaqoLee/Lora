@@ -50,6 +50,7 @@ typedef struct
   uint16_t TxSize; 
 
   uint16_t RxCount;
+  uint32_t RxTime;
   
   uint8_t RxEndFlag;  
 

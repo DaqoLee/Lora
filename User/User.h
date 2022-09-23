@@ -10,9 +10,12 @@
 #define USER_RX_MAX_SIZE 1000
 #define USER_TX_MAX_SIZE 1000
 
+#define LORA_FTU_RX_TIME_OUT 300
 
-#define DEBUG 0
-#define UPEER_PC_800MN 1
+
+
+#define DEBUG 1
+#define UPEER_PC_800MN 0
 
 #define SD_CARD_LOG 0 //1  ¿ªÆôTF¿¨ 1
 
@@ -44,7 +47,11 @@ typedef struct
 	uint8_t TxFlag; 
 	
   uint8_t ReadIDFlag;
+  uint8_t IwdgFlag;
+  
   UserStatus_t ErrCode;
+  
+  
   
   UART_HandleTypeDef *UartHander;
   

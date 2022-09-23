@@ -16,7 +16,7 @@ User_t User ={
                .RxBuff= {0},
                .UartHander = &huart1,
 							 .TxFlag = 0,
-
+               .IwdgFlag = 1,
 };                      
                       
 RTC_TimeTypeDef Time; 
@@ -149,10 +149,11 @@ void LoraTransmitToUser(void)
 //    Logging(LogBuff);
 //    HAL_Delay(50);
 //    FTU_Transmit(FTU.TxBuff,FTU.TxSize);
-		
-		HAL_UART_Transmit(User.UartHander, User.TxBuff, User.TxSize, 1000);
-		
+#if UPEER_PC_800MN
+  	HAL_UART_Transmit(User.UartHander, User.TxBuff, User.TxSize, 1000);
 		User.TxFlag =0;
+#endif		
+
 //    HAL_Delay(50);
 //#if DEBUG   
 //    HAL_UART_Transmit(User.UartHander, head,sizeof(head), 500);
@@ -234,6 +235,15 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)//10ms¸üÐÂÖÐ¶Ï£¨Òç³ö£
 
 		LEDStatus(100);
     Lora_SetIDWithKey();
+    
+    if(Lora.RxTime++ > (LORA_FTU_RX_TIME_OUT *100) || FTU.RxTime++ > (LORA_FTU_RX_TIME_OUT *100))
+    {
+      User.IwdgFlag = 0;
+    }
+    else
+    {
+      User.IwdgFlag = 1;
+    }
     
 	}
 

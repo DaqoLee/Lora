@@ -16,6 +16,8 @@ FTU_t FTU={
             .RxSize = 0,
             .TxSize = 0,
             .RxCount = 0,
+            .RxTime = 0,
+            
             .ReadIDFlag = 0,
             .UartHander = &huart3,
 };
@@ -83,7 +85,9 @@ int FTU_IRQHandler(void)
       FTU.pFTU_RXBuff_In ->pStart = FTU.RxBuff;
     }
     
-
+  // FTU.RxCount++;
+    
+    FTU.RxTime = 0;
 	//	HAL_UART_Transmit(User.UartHander,FTU.pFTU_RXBuff_In->pStart, FTU.RxSize,500);
 
     HAL_UART_Receive_DMA(FTU.UartHander, FTU.pFTU_RXBuff_In ->pStart, FTU_RX_MAX_SIZE);

@@ -145,8 +145,11 @@ int main(void)
 
     UserLoop();
     
-    HAL_Delay(5);//不能低于5ms
-    HAL_IWDG_Refresh(&hiwdg); //喂看门狗
+    if(User.IwdgFlag == 1)
+    {
+      HAL_Delay(5);//不能低于5ms
+      HAL_IWDG_Refresh(&hiwdg); //喂看门狗
+    }
 //    
   }
   /* USER CODE END 3 */

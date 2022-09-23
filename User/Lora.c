@@ -29,6 +29,7 @@ Lora_t Lora = {.ID = 0,
                .RxSize = 0,
                .TxSize = 0,
                .RxCount = 0,
+               .RxTime =0,
                
                .RxEndFlag = 0, 
                
@@ -52,19 +53,14 @@ int Lora_IRQHandler(void)
     Lora.RxSize = LORA_RX_MAX_SIZE - __HAL_DMA_GET_COUNTER(Lora.UartHander->hdmarx);// huart1.hdmarx->Instance->CNDTR;
 
 #if UPEER_PC_800MN
-    HAL_UART_Transmit(User.UartHander,Lora.RxBuff,Lora.RxSize,500); 
-#endif
-//  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
-
-		
-		User.TxSize = Lora.RxSize;
-		
-		
+    User.TxSize = Lora.RxSize;		
 		memcpy(User.TxBuff, Lora.RxBuff, Lora.RxSize);
- //   HAL_UART_Transmit(User.UartHander,Lora.RxBuff,Lora.RxSize,500); 
-//#endif
-//  HAL_UART_Receive_DMA(Lora.UartHander,Lora.RxBuff,LORA_RX_MAX_SIZE);
-		User.TxFlag = 1;
+		User.TxFlag = 1;    
+#endif
+
+//    Lora.RxCount++;
+    Lora.RxTime = 0;
+
     Lora_CopyToFTU(Lora.RxBuff, Lora.RxSize);
   }
     
@@ -209,7 +205,7 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
     {
       status = 0;      
       Lora.RxEndFlag = 1;
-      Lora.RxCount++;
+     // Lora.RxCount++;
     }
     else if (status == 0)
     {
@@ -217,7 +213,7 @@ void Lora_CopyToFTU(uint8_t *Rx_Buff, uint16_t Rx_Size)
       memcpy(FTU.TxBuff, &Rx_Buff[8], FTU.TxSize);
 //			HAL_UART_Transmit(User.UartHander,&Rx_Buff[8], FTU.TxSize,500); 
       Lora.RxEndFlag = 1;
-      Lora.RxCount++;
+     // Lora.RxCount++;
     }
     else if (status == 1)
     { 
