@@ -107,19 +107,19 @@ void LEDStatus(uint16_t frequency)
 //    } 
   }
   
-  if(SD_Status==0)
-  {
-//   if( sdTemp++ >5)
-//    {
-//      sdTemp=0;
-//      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
-    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);    
-//    }    
-  }
-  else
-  {
-    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
-  }
+//  if(SD_Status==0)
+//  {
+////   if( sdTemp++ >5)
+////    {
+////      sdTemp=0;
+////      HAL_GPIO_TogglePin(DEV_LED_RX_GPIO_Port, DEV_LED_RX_Pin); 
+//    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);    
+////    }    
+//  }
+//  else
+//  {
+//    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
+//  }
   
 //  if(Forward.Rx_LED_Status==1)
 //  {

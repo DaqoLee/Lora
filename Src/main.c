@@ -118,7 +118,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
   __HAL_RTC_SECOND_ENABLE_IT(&hrtc,RTC_IT_SEC); //开启秒中断
 
-  HAL_Delay(500);
+  HAL_Delay(200);
   
   Lora_Init();
   User_Init();
@@ -127,6 +127,9 @@ int main(void)
 // #if SD_CARD_LOG  
 //  SDCardLogInit();
 //#endif  
+  HAL_Delay(200);
+  Lora.RxCount = 0;
+  FTU.RxCount = 0;
 
   HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(DEV_LED_TX_GPIO_Port, DEV_LED_TX_Pin, GPIO_PIN_RESET);
@@ -150,7 +153,7 @@ int main(void)
       HAL_Delay(5);//不能低于5ms
       HAL_IWDG_Refresh(&hiwdg); //喂看门狗
     }
-//    
+    
   }
   /* USER CODE END 3 */
 }

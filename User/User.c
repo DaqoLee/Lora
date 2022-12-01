@@ -203,6 +203,14 @@ void UserLoop(void)
      Lora.ReadIDStatus = LORA_OK;
   }
   
+  if(Lora.RxCount == 0 || FTU.RxCount ==  0)
+  {
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_SET);  
+  }
+  else
+  {
+    HAL_GPIO_WritePin(USER_LED_GPIO_Port, USER_LED_Pin, GPIO_PIN_RESET);  
+  }
 //  tick = HAL_GetTick();
 ////  SDCardLogInit();
 //  

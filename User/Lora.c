@@ -58,7 +58,8 @@ int Lora_IRQHandler(void)
 		User.TxFlag = 1;    
 #endif
 
-//    Lora.RxCount++;
+   // Lora.RxCount++;
+    Lora.RxCount = Lora.RxCount > 50000 ? 1 : Lora.RxCount + 1;
     Lora.RxTime = 0;
 
     Lora_CopyToFTU(Lora.RxBuff, Lora.RxSize);
@@ -116,6 +117,7 @@ void Lora_Pack(uint8_t *Tx_Buff, uint16_t Tx_Size, uint16_t ID, uint16_t timeOut
   {
     HAL_Delay(1);
   }
+  
  // printf("timeOut: %d \r\n",LasttimeOut - timeOut );
 //  HAL_UART_Transmit_DMA(Lora.UartHander,Tx_Data ,Tx_Size+11);
 }
@@ -267,6 +269,7 @@ LoraStatus_t Lora_ReadID(void)
   }while(Lora.ReadIDStatus != READ_ID_END && temp--);
   
   Lora.LastID = Lora.ID;
+  
   if(temp <= 0 && Lora.ID ==0)
   {
     return READ_ID_ERR;
