@@ -90,9 +90,7 @@ int FTU_IRQHandler(void)
     FTU.RxTime = 0;
     HAL_UART_Receive_DMA(FTU.UartHander, FTU.pFTU_RXBuff_In ->pStart, FTU_RX_MAX_SIZE);
     
-  }
-    
-  
+  }      
   return 0;
 }
 
@@ -100,7 +98,7 @@ void FTU_Transmit(uint8_t *Tx_Buff, uint16_t Tx_Size)
 {
   
   HAL_UART_Transmit(FTU.UartHander,Tx_Buff ,Tx_Size ,2000);
-//  HAL_UART_Transmit_DMA(&huart3,Tx_Buff ,Tx_Size);
+ //HAL_UART_Transmit_DMA(&huart3,Tx_Buff ,Tx_Size);
  //memset(Forward.USART3_Tx_Buff,0,Forward.USART3_Tx_Buff_Size);
  //Forward.USART3_Tx_Buff_Size = 0;
  // HAL_UART_Transmit_DMA(&huart1,Forward.USART3_Tx_Buff ,Forward.USART3_Tx_Buff_Size );

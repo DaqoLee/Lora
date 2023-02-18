@@ -14,8 +14,8 @@
 
 
 
-#define DEBUG 0
-#define UPEER_PC_800MN 1
+#define DEBUG 1
+#define UPEER_PC_800MN 0
 
 #define SD_CARD_LOG 0 //1  ¿ªÆôTF¿¨ 1
 
